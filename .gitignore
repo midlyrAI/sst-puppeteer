@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.turbo/
+.cache/
+*.tsbuildinfo
+
+.omc/
+.omx/
+
+md/

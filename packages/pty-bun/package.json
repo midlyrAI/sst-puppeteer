@@ -1,0 +1,30 @@
+{
+  "name": "@sst-puppeteer/pty-bun",
+  "version": "0.0.0",
+  "description": "Bun PTY adapter for sst-puppeteer (Bun.spawn backed; stub in v0.1).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "bun": ">=1.1"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@sst-puppeteer/core": "workspace:*"
+  }
+}

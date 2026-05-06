@@ -1,0 +1,30 @@
+{
+  "name": "@sst-puppeteer/pty-node",
+  "version": "0.0.0",
+  "description": "Node PTY adapter for sst-puppeteer (node-pty backed; stub in v0.1).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@sst-puppeteer/core": "workspace:*"
+  }
+}

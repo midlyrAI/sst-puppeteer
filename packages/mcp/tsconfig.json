@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "references": [{ "path": "../core" }, { "path": "../pty-node" }],
+  "include": ["src/**/*"],
+  "exclude": ["test", "dist", "node_modules"]
+}
