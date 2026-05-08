@@ -9,5 +9,8 @@ coverage/
 
 .omc/
 .omx/
+.claude/
 
 md/
+docs/
+scripts/

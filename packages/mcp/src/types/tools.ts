@@ -1,11 +1,20 @@
-import { type DeployState } from '@sst-puppeteer/core';
+import {
+  type Command,
+  type CommandSpec,
+  type CommandStatus,
+  type DeployState,
+} from '@sst-puppeteer/core';
 
 export const TOOL_NAMES = [
   'start_session',
   'wait_for_ready',
+  'list_commands',
+  'get_command_status',
+  'start_command',
+  'restart_command',
+  'stop_command',
+  'read_command_logs',
   'wait_for_redeploy',
-  'invoke_function',
-  'read_logs',
   'stop_session',
 ] as const;
 
@@ -14,6 +23,8 @@ export type ToolName = (typeof TOOL_NAMES)[number];
 export interface StartSessionInput {
   readonly projectDir: string;
   readonly awsProfile?: string;
+  readonly stage?: string;
+  readonly commands?: readonly CommandSpec[];
 }
 export interface StartSessionOutput {
   readonly sessionId: string;
@@ -28,35 +39,65 @@ export interface WaitForReadyOutput {
   readonly durationMs: number;
 }
 
+export interface ListCommandsInput {
+  readonly sessionId: string;
+}
+export interface ListCommandsOutput {
+  readonly commands: readonly Command[];
+}
+
+export interface GetCommandStatusInput {
+  readonly sessionId: string;
+  readonly commandName: string;
+}
+export interface GetCommandStatusOutput {
+  readonly status: CommandStatus;
+}
+
+export interface StartCommandInput {
+  readonly sessionId: string;
+  readonly commandName: string;
+}
+export interface StartCommandOutput {
+  readonly status: 'running';
+  readonly durationMs: number;
+}
+
+export interface RestartCommandInput {
+  readonly sessionId: string;
+  readonly commandName: string;
+}
+export interface RestartCommandOutput {
+  readonly status: 'running';
+  readonly durationMs: number;
+}
+
+export interface StopCommandInput {
+  readonly sessionId: string;
+  readonly commandName: string;
+}
+export interface StopCommandOutput {
+  readonly status: 'stopped';
+}
+
+export interface ReadCommandLogsInput {
+  readonly sessionId: string;
+  readonly commandName: string;
+  readonly since?: number;
+  readonly limit?: number;
+}
+export interface ReadCommandLogsOutput {
+  readonly lines: readonly string[];
+}
+
 export interface WaitForRedeployInput {
   readonly sessionId: string;
-  readonly since?: number;
   readonly timeoutMs?: number;
+  readonly commandName?: string;
 }
 export interface WaitForRedeployOutput {
   readonly state: DeployState;
   readonly durationMs: number;
-}
-
-export interface InvokeFunctionInput {
-  readonly sessionId: string;
-  readonly functionName: string;
-  readonly payload: unknown;
-}
-export interface InvokeFunctionOutput {
-  readonly statusCode: number;
-  readonly response: unknown;
-  readonly logs: readonly string[];
-}
-
-export interface ReadLogsInput {
-  readonly sessionId: string;
-  readonly functionName: string;
-  readonly since?: number;
-  readonly limit?: number;
-}
-export interface ReadLogsOutput {
-  readonly lines: readonly string[];
 }
 
 export interface StopSessionInput {

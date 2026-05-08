@@ -22,9 +22,11 @@
     "build": "tsc",
     "lint": "eslint src test",
     "lint:fix": "eslint src test --fix",
+    "postinstall": "node scripts/fix-spawn-helper.mjs",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@sst-puppeteer/core": "workspace:*"
+    "@sst-puppeteer/core": "workspace:*",
+    "node-pty": "^1.0"
   }
 }

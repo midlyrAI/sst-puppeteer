@@ -1,7 +1,7 @@
 export const EVENT_TYPES = [
   'state-change',
   'deploy-progress',
-  'function-invocation',
+  'command-status-change',
   'log-line',
   'error',
 ] as const;
@@ -17,4 +17,4 @@ export const DEFAULT_TIMEOUTS = {
 export const DEFAULT_INVOCATION_HISTORY_LIMIT = 100;
 export const DEFAULT_DEDUP_TTL_MS = 5_000;
 
-export { DEPLOY_STATES } from './types/state.js';
+export { DEPLOY_STATES } from './domain/deploy-state.js';

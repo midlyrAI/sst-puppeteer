@@ -1,3 +1,4 @@
+import * as pty from 'node-pty';
 import {
   NotImplementedError,
   type PtyAdapter,
@@ -8,29 +9,56 @@ import {
 } from '@sst-puppeteer/core';
 
 export class NodePtyAdapter implements PtyAdapter {
-  readonly pid: number | null = null;
+  private _pty: pty.IPty | null = null;
 
-  async spawn(_opts: PtySpawnOptions): Promise<void> {
-    throw new NotImplementedError('NodePtyAdapter.spawn');
+  get pid(): number | null {
+    return this._pty?.pid ?? null;
   }
 
-  write(_data: string): void {
-    throw new NotImplementedError('NodePtyAdapter.write');
+  async spawn(opts: PtySpawnOptions): Promise<void> {
+    if (this._pty !== null) {
+      throw new Error('NodePtyAdapter: already spawned');
+    }
+    this._pty = pty.spawn(opts.command, [...opts.args], {
+      cwd: opts.cwd,
+      env: { ...process.env, ...opts.env },
+      cols: opts.cols ?? 80,
+      rows: opts.rows ?? 24,
+      name: 'xterm-256color',
+    });
   }
 
-  onData(_handler: PtyDataHandler): PtyUnsubscribe {
-    throw new NotImplementedError('NodePtyAdapter.onData');
+  write(data: string): void {
+    if (this._pty === null) {
+      throw new NotImplementedError('NodePtyAdapter.write');
+    }
+    this._pty.write(data);
   }
 
-  onExit(_handler: PtyExitHandler): PtyUnsubscribe {
-    throw new NotImplementedError('NodePtyAdapter.onExit');
+  onData(handler: PtyDataHandler): PtyUnsubscribe {
+    if (this._pty === null) {
+      throw new NotImplementedError('NodePtyAdapter.onData');
+    }
+    const disposable = this._pty.onData(handler);
+    return () => disposable.dispose();
   }
 
-  resize(_cols: number, _rows: number): void {
-    throw new NotImplementedError('NodePtyAdapter.resize');
+  onExit(handler: PtyExitHandler): PtyUnsubscribe {
+    if (this._pty === null) {
+      throw new NotImplementedError('NodePtyAdapter.onExit');
+    }
+    const disposable = this._pty.onExit(({ exitCode, signal }) => {
+      const sig: number | null = typeof signal === 'number' ? signal : null;
+      handler(exitCode ?? null, sig);
+    });
+    return () => disposable.dispose();
   }
 
-  kill(_signal?: string): void {
-    throw new NotImplementedError('NodePtyAdapter.kill');
+  resize(cols: number, rows: number): void {
+    this._pty?.resize(cols, rows);
+  }
+
+  kill(signal?: string): void {
+    this._pty?.kill(signal ?? 'SIGTERM');
   }
 }

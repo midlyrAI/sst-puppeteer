@@ -2,9 +2,17 @@
 
 > A headless control layer for `sst dev` — drive serverless dev loops programmatically from any AI agent.
 
-**Status:** v0.1 skeleton. No runtime behavior yet — interfaces and structure only.
+**Status:** SSTSession drives `sst dev` end-to-end via SST's canonical contracts:
 
-See [docs/VISION.md](docs/VISION.md) for the design rationale.
+- Spawns `sst dev --stage <stage>` with `SST_LOG_CHILDREN=1` for per-pane log files
+- Discovers DevCommands via `sst.config.ts` parsing or `SessionOptions.commands` override
+- Subscribes to `<SST_SERVER>/stream` NDJSON for typed deploy lifecycle events
+- Detects per-command stop via `[process exited]` literal in `.sst/log/<DevCommandName>.log` (with watchdog fallback)
+- Sends keystrokes (`j`/`k`/`Enter`/`x`) through PTY to drive the multiplexer
+- Construct via `SessionBuilder`; `ISession` decomposed into four cohesive sub-interfaces
+- Layered `transport/` ⊥ `domain/` enforced by eslint
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the load-bearing decisions and [docs/RELEASE-SMOKE.md](docs/RELEASE-SMOKE.md) for the manual real-AWS smoke runbook.
 
 ## Packages
 

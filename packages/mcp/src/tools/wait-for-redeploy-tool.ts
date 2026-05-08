@@ -1,4 +1,4 @@
-import { NotImplementedError, type SSTSession } from '@sst-puppeteer/core';
+import { type SSTSession } from '@sst-puppeteer/core';
 import { Tool, type ToolInputSchema } from './tool.js';
 import { type WaitForRedeployInput, type WaitForRedeployOutput } from '../types/tools.js';
 
@@ -10,16 +10,17 @@ export class WaitForRedeployTool extends Tool<WaitForRedeployInput, WaitForRedep
     type: 'object',
     properties: {
       sessionId: { type: 'string' },
-      since: { type: 'number' },
       timeoutMs: { type: 'number' },
+      commandName: { type: 'string' },
     },
     required: ['sessionId'],
   };
 
-  async execute(
-    _session: SSTSession,
-    _input: WaitForRedeployInput,
-  ): Promise<WaitForRedeployOutput> {
-    throw new NotImplementedError('WaitForRedeployTool.execute');
+  async execute(session: SSTSession, input: WaitForRedeployInput): Promise<WaitForRedeployOutput> {
+    const result = await session.waitForRedeploy({
+      timeoutMs: input.timeoutMs,
+      commandName: input.commandName,
+    });
+    return { state: result.state, durationMs: result.durationMs };
   }
 }

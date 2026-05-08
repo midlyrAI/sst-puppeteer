@@ -1,0 +1,108 @@
+import { DeployFailedError } from '../errors.js';
+import { type Logger, NoopLogger } from '../api/logger.js';
+import { type DeployState } from './deploy-state.js';
+import { type SessionEvent } from './session-event.js';
+
+export type DeployStateChangeHandler = (from: DeployState, to: DeployState) => void;
+
+interface Waiter {
+  target: DeployState;
+  resolve: () => void;
+  reject: (reason: unknown) => void;
+  timeoutId: ReturnType<typeof setTimeout> | undefined;
+}
+
+export class DeployStateMachine {
+  private _current: DeployState = 'idle';
+  private _changeHandlers: Set<DeployStateChangeHandler> = new Set();
+  private _waiters: Array<Waiter> = [];
+  private readonly _logger: Logger;
+
+  constructor(opts?: { logger?: Logger }) {
+    this._logger = opts?.logger ?? new NoopLogger();
+  }
+
+  get current(): DeployState {
+    return this._current;
+  }
+
+  transition(event: SessionEvent): void {
+    if (event.type !== 'state-change') {
+      return;
+    }
+
+    const from = this._current;
+    const to = event.to as DeployState;
+
+    if (from === to) {
+      return;
+    }
+
+    this._current = to;
+
+    // Fire change handlers
+    for (const handler of this._changeHandlers) {
+      try {
+        handler(from, to);
+      } catch (err) {
+        this._logger.error('[DeployStateMachine] onChange handler threw', {
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
+    // Resolve or reject waiters
+    const remaining: Array<Waiter> = [];
+    for (const waiter of this._waiters) {
+      if (to === waiter.target) {
+        if (waiter.timeoutId !== undefined) {
+          clearTimeout(waiter.timeoutId);
+        }
+        waiter.resolve();
+      } else if (to === 'error') {
+        // Transitioning to error rejects any waiter targeting 'ready' (or any other non-error state)
+        if (waiter.timeoutId !== undefined) {
+          clearTimeout(waiter.timeoutId);
+        }
+        waiter.reject(
+          new DeployFailedError(`Deploy failed — state machine transitioned to 'error'`),
+        );
+      } else {
+        remaining.push(waiter);
+      }
+    }
+    this._waiters = remaining;
+  }
+
+  waitFor(target: DeployState, timeoutMs?: number): Promise<void> {
+    if (this._current === target) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      if (timeoutMs !== undefined) {
+        timeoutId = setTimeout(() => {
+          // Remove this waiter from the list
+          this._waiters = this._waiters.filter((w) => w.timeoutId !== timeoutId);
+          reject(
+            new DeployFailedError(
+              `Timed out waiting for state '${target}' (current: '${this._current}')`,
+            ),
+          );
+        }, timeoutMs);
+      }
+
+      const waiter: Waiter = { target, resolve, reject, timeoutId };
+      this._waiters.push(waiter);
+    });
+  }
+
+  onChange(handler: DeployStateChangeHandler): () => void {
+    this._changeHandlers.add(handler);
+    return () => {
+      this._changeHandlers.delete(handler);
+    };
+  }
+}

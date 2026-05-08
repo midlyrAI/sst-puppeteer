@@ -1,59 +1,133 @@
 import { describe, expect, it } from 'vitest';
 import {
-  NotImplementedError,
   type PtyAdapter,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
   type PtyUnsubscribe,
+  CommandNotFoundError,
   SSTSession,
 } from '../src/index.js';
 
 class MockPtyAdapter implements PtyAdapter {
   readonly pid: number | null = null;
-  spawn(_opts: PtySpawnOptions): Promise<void> {
-    throw new NotImplementedError('MockPtyAdapter.spawn');
+  async spawn(_opts: PtySpawnOptions): Promise<void> {
+    // no-op for construction tests
   }
-  write(_data: string): void {
-    throw new NotImplementedError('MockPtyAdapter.write');
-  }
+  write(_data: string): void {}
   onData(_handler: PtyDataHandler): PtyUnsubscribe {
-    throw new NotImplementedError('MockPtyAdapter.onData');
+    return () => {};
   }
   onExit(_handler: PtyExitHandler): PtyUnsubscribe {
-    throw new NotImplementedError('MockPtyAdapter.onExit');
+    return () => {};
   }
-  resize(_cols: number, _rows: number): void {
-    throw new NotImplementedError('MockPtyAdapter.resize');
-  }
-  kill(_signal?: string): void {
-    throw new NotImplementedError('MockPtyAdapter.kill');
-  }
+  resize(_cols: number, _rows: number): void {}
+  kill(_signal?: string): void {}
 }
 
 describe('SSTSession smoke', () => {
   const buildSession = (): SSTSession =>
-    new SSTSession({ adapter: new MockPtyAdapter(), projectDir: '/tmp/fake-project' });
+    new SSTSession({
+      adapter: new MockPtyAdapter(),
+      projectDir: '/tmp/fake-project',
+    });
 
-  it('constructs and assigns an id + projectDir', () => {
+  it('constructs and assigns an id', () => {
     const session = buildSession();
     expect(session.id).toMatch(/^sst-session-/);
-    expect(session.projectDir).toBe('/tmp/fake-project');
+    expect(typeof session.id).toBe('string');
   });
 
-  it('throws NotImplementedError from every public method', async () => {
+  it('state returns idle before start', () => {
     const session = buildSession();
-    expect(() => session.state).toThrow(NotImplementedError);
-    await expect(session.start()).rejects.toBeInstanceOf(NotImplementedError);
-    await expect(session.stop()).rejects.toBeInstanceOf(NotImplementedError);
-    await expect(session.waitForReady()).rejects.toBeInstanceOf(NotImplementedError);
-    await expect(session.waitForRedeploy()).rejects.toBeInstanceOf(NotImplementedError);
-    await expect(session.invokeFunction('api', {})).rejects.toBeInstanceOf(NotImplementedError);
-    await expect(session.readLogs({ functionName: 'api' })).rejects.toBeInstanceOf(
-      NotImplementedError,
+    expect(session.state).toBe('idle');
+  });
+
+  it('listCommands returns empty array before start', () => {
+    const session = buildSession();
+    expect(session.listCommands()).toEqual([]);
+  });
+
+  it('on() returns an unsubscribe function', () => {
+    const session = buildSession();
+    const unsub = session.on('state-change', () => {});
+    expect(typeof unsub).toBe('function');
+    expect(() => unsub()).not.toThrow();
+  });
+
+  it('stop() on an unstarted session is a no-op', async () => {
+    const session = buildSession();
+    await expect(session.stop()).resolves.toBeUndefined();
+  });
+
+  it('getCommandStatus throws CommandNotFoundError for unregistered command', () => {
+    const session = buildSession();
+    expect(() => session.getCommandStatus('Unknown')).toThrow(CommandNotFoundError);
+  });
+
+  it('startCommand throws CommandNotFoundError for unregistered command before start', async () => {
+    const session = buildSession();
+    await expect(session.startCommand('Unknown')).rejects.toThrow(CommandNotFoundError);
+  });
+
+  it('stopCommand throws CommandNotFoundError for unregistered command before start', async () => {
+    const session = buildSession();
+    await expect(session.stopCommand('Unknown')).rejects.toThrow(CommandNotFoundError);
+  });
+
+  it('restartCommand throws CommandNotFoundError for unregistered command before start', async () => {
+    const session = buildSession();
+    await expect(session.restartCommand('Unknown')).rejects.toThrow(CommandNotFoundError);
+  });
+
+  it('readCommandLogs throws CommandNotFoundError for unregistered command before start', async () => {
+    const session = buildSession();
+    await expect(session.readCommandLogs({ commandName: 'Unknown' })).rejects.toThrow(
+      CommandNotFoundError,
     );
-    expect(() => session.listFunctions()).toThrow(NotImplementedError);
-    expect(() => session.recentInvocations('api')).toThrow(NotImplementedError);
-    expect(() => session.on('log-line', () => {})).toThrow(NotImplementedError);
+  });
+
+  it('start() throws when called a second time (double-start guard)', async () => {
+    // Use a temp dir with .sst/log/ already present + a fast exit to make start() fail quickly
+    const os = await import('node:os');
+    const fs = await import('node:fs');
+    const projectDir = fs.mkdtempSync(os.tmpdir() + '/sst-smoke-test-');
+
+    try {
+      // Use a special adapter that fires exit immediately to make start() fail fast
+      const fakeAdapter: typeof MockPtyAdapter.prototype = {
+        pid: null,
+        async spawn() {},
+        write() {},
+        onData() {
+          return () => {};
+        },
+        onExit(handler) {
+          // Fire exit after a brief delay so start() wires up its handlers first
+          setTimeout(() => handler(1, null), 20);
+          return () => {};
+        },
+        resize() {},
+        kill() {},
+      };
+
+      const session = new SSTSession({
+        adapter: fakeAdapter,
+        projectDir,
+        commands: [],
+      });
+
+      // Start first call — will fail quickly (exit fired after 20ms)
+      const firstStart = session.start().catch(() => {
+        /* expected: exit before ready */
+      });
+      // Yield so _started = true is set
+      await Promise.resolve();
+      // Second call should throw immediately with already-started error
+      await expect(session.start()).rejects.toThrow(/already.started/i);
+      await firstStart;
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
   });
 });

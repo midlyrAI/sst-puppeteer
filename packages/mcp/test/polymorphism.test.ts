@@ -33,13 +33,16 @@ class StubPtyAdapter implements PtyAdapter {
 }
 
 const buildSession = (): SSTSession =>
-  new SSTSession({ adapter: new StubPtyAdapter(), projectDir: '/tmp/x' });
+  new SSTSession({
+    adapter: new StubPtyAdapter(),
+    projectDir: '/tmp/x',
+  });
 
 describe('mcp tool polymorphism', () => {
-  it('defaultRegistry registers exactly 6 tools', () => {
+  it('defaultRegistry registers exactly 10 tools', () => {
     const registry = defaultRegistry();
-    expect(registry.size()).toBe(6);
-    expect(registry.list().length).toBe(6);
+    expect(registry.size()).toBe(10);
+    expect(registry.list().length).toBe(10);
   });
 
   it('every registered tool is an instance of Tool', () => {
@@ -56,11 +59,17 @@ describe('mcp tool polymorphism', () => {
     expect(names).toEqual(expected);
   });
 
-  it('every tool execute() rejects with NotImplementedError', async () => {
+  it('stub-only tools execute() rejects with NotImplementedError', async () => {
     const registry = defaultRegistry();
     const session = buildSession();
+    // start_session is still a stub that throws NotImplementedError.
+    const STUB_TOOLS = ['start_session'];
     for (const tool of registry.list()) {
-      await expect(tool.execute(session, {} as never)).rejects.toBeInstanceOf(NotImplementedError);
+      if (STUB_TOOLS.includes(tool.name)) {
+        await expect(tool.execute(session, {} as never)).rejects.toBeInstanceOf(
+          NotImplementedError,
+        );
+      }
     }
   });
 });

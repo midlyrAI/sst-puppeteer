@@ -5,11 +5,20 @@ export {
   ToolRegistry,
   StartSessionTool,
   WaitForReadyTool,
+  ListCommandsTool,
+  GetCommandStatusTool,
+  StartCommandTool,
+  RestartCommandTool,
+  StopCommandTool,
+  ReadCommandLogsTool,
   WaitForRedeployTool,
-  InvokeFunctionTool,
-  ReadLogsTool,
   StopSessionTool,
   defaultRegistry,
 } from './tools/index.js';
 export { Transport, StdioTransport, HttpTransport } from './transport.js';
-export { McpServer, createMcpServer, type McpServerOptions } from './server.js';
+export {
+  McpServer,
+  createMcpServer,
+  type McpServerOptions,
+  type SessionFactory,
+} from './server.js';

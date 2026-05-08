@@ -28,10 +28,9 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "@sst-puppeteer/core": "workspace:*",
     "@sst-puppeteer/pty-node": "workspace:*"
   },
-  "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
-  }
+  "devDependencies": {}
 }

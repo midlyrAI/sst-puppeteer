@@ -1,12 +1,10 @@
 import { expectTypeOf } from 'expect-type';
 import { test } from 'vitest';
 import {
-  type EventHandler,
   type ISession,
-  type LogLineEvent,
   type PtyAdapter,
   type SessionEvent,
-  type StateChangeEvent,
+  type SessionOptions,
   type SSTSession,
 } from '../src/index.js';
 
@@ -18,13 +16,14 @@ test('PtyAdapter.pid is number | null', () => {
   expectTypeOf<PtyAdapter['pid']>().toEqualTypeOf<number | null>();
 });
 
-test('SessionEvent is a discriminated union of 5 variants', () => {
+test('SessionEvent is a discriminated union with the expected variants', () => {
   expectTypeOf<SessionEvent['type']>().toEqualTypeOf<
-    'state-change' | 'deploy-progress' | 'function-invocation' | 'log-line' | 'error'
+    'state-change' | 'deploy-progress' | 'command-status-change' | 'log-line' | 'error'
   >();
 });
 
-test('on<T>() narrows the handler argument by event type', () => {
-  expectTypeOf<EventHandler<'log-line'>>().parameter(0).toEqualTypeOf<LogLineEvent>();
-  expectTypeOf<EventHandler<'state-change'>>().parameter(0).toEqualTypeOf<StateChangeEvent>();
+test('SessionOptions has no adapterFactory or sstServerUrl, and has optional stage', () => {
+  expectTypeOf<SessionOptions>().not.toHaveProperty('adapterFactory');
+  expectTypeOf<SessionOptions>().not.toHaveProperty('sstServerUrl');
+  expectTypeOf<SessionOptions['stage']>().toEqualTypeOf<string | undefined>();
 });

@@ -1,12 +1,6 @@
 import { expectTypeOf } from 'expect-type';
 import { test } from 'vitest';
 import {
-  type InvokeFunctionInput,
-  type InvokeFunctionOutput,
-  type InvokeFunctionTool,
-  type ReadLogsInput,
-  type ReadLogsOutput,
-  type ReadLogsTool,
   type StartSessionInput,
   type StartSessionOutput,
   type StartSessionTool,
@@ -28,9 +22,5 @@ test('every concrete Tool subclass matches its declared input/output types', () 
   expectTypeOf<WaitForRedeployTool>().toMatchTypeOf<
     Tool<WaitForRedeployInput, WaitForRedeployOutput>
   >();
-  expectTypeOf<InvokeFunctionTool>().toMatchTypeOf<
-    Tool<InvokeFunctionInput, InvokeFunctionOutput>
-  >();
-  expectTypeOf<ReadLogsTool>().toMatchTypeOf<Tool<ReadLogsInput, ReadLogsOutput>>();
   expectTypeOf<StopSessionTool>().toMatchTypeOf<Tool<StopSessionInput, StopSessionOutput>>();
 });

@@ -10,7 +10,7 @@ export class NotImplementedError extends SstPuppeteerError {
   override readonly name = 'NotImplementedError';
 
   constructor(symbol: string) {
-    super(`${symbol} is not implemented in v0.1 skeleton.`);
+    super(`${symbol} is not implemented.`);
   }
 }
 
@@ -26,25 +26,49 @@ export class DeployFailedError extends SstPuppeteerError {
   }
 }
 
-export class InvocationFailedError extends SstPuppeteerError {
-  override readonly name = 'InvocationFailedError';
+export class CommandNotFoundError extends SstPuppeteerError {
+  override readonly name = 'CommandNotFoundError';
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+  }
+}
+
+export class CommandAlreadyRunningError extends SstPuppeteerError {
+  override readonly name = 'CommandAlreadyRunningError';
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+  }
+}
+
+export class CommandNotRunningError extends SstPuppeteerError {
+  override readonly name = 'CommandNotRunningError';
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+  }
+}
+
+export class ConfigNotFoundError extends SstPuppeteerError {
+  override readonly name = 'ConfigNotFoundError';
 
   constructor(
     message: string,
-    readonly functionName: string,
-    readonly statusCode?: number,
+    readonly configPath: string,
     options?: { cause?: unknown },
   ) {
     super(message, options);
   }
 }
 
-export class SourceParseError extends SstPuppeteerError {
-  override readonly name = 'SourceParseError';
+export class StreamConnectionError extends SstPuppeteerError {
+  override readonly name = 'StreamConnectionError';
 
   constructor(
     message: string,
-    readonly source: 'pty' | 'sse' | 'log',
+    readonly url: string,
+    readonly attempts: number,
     options?: { cause?: unknown },
   ) {
     super(message, options);

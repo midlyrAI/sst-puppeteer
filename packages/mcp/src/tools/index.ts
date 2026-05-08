@@ -1,9 +1,13 @@
 import { ToolRegistry } from './registry.js';
 import { StartSessionTool } from './start-session-tool.js';
 import { WaitForReadyTool } from './wait-for-ready-tool.js';
+import { ListCommandsTool } from './list-commands-tool.js';
+import { GetCommandStatusTool } from './get-command-status-tool.js';
+import { StartCommandTool } from './start-command-tool.js';
+import { RestartCommandTool } from './restart-command-tool.js';
+import { StopCommandTool } from './stop-command-tool.js';
+import { ReadCommandLogsTool } from './read-command-logs-tool.js';
 import { WaitForRedeployTool } from './wait-for-redeploy-tool.js';
-import { InvokeFunctionTool } from './invoke-function-tool.js';
-import { ReadLogsTool } from './read-logs-tool.js';
 import { StopSessionTool } from './stop-session-tool.js';
 
 export { TOOL_NAMES, type ToolName } from '../types/tools.js';
@@ -11,18 +15,26 @@ export { Tool, type ToolInputSchema } from './tool.js';
 export { ToolRegistry } from './registry.js';
 export { StartSessionTool } from './start-session-tool.js';
 export { WaitForReadyTool } from './wait-for-ready-tool.js';
+export { ListCommandsTool } from './list-commands-tool.js';
+export { GetCommandStatusTool } from './get-command-status-tool.js';
+export { StartCommandTool } from './start-command-tool.js';
+export { RestartCommandTool } from './restart-command-tool.js';
+export { StopCommandTool } from './stop-command-tool.js';
+export { ReadCommandLogsTool } from './read-command-logs-tool.js';
 export { WaitForRedeployTool } from './wait-for-redeploy-tool.js';
-export { InvokeFunctionTool } from './invoke-function-tool.js';
-export { ReadLogsTool } from './read-logs-tool.js';
 export { StopSessionTool } from './stop-session-tool.js';
 
 export const defaultRegistry = (): ToolRegistry => {
   const registry = new ToolRegistry();
   registry.register(new StartSessionTool());
   registry.register(new WaitForReadyTool());
+  registry.register(new ListCommandsTool());
+  registry.register(new GetCommandStatusTool());
+  registry.register(new StartCommandTool());
+  registry.register(new RestartCommandTool());
+  registry.register(new StopCommandTool());
+  registry.register(new ReadCommandLogsTool());
   registry.register(new WaitForRedeployTool());
-  registry.register(new InvokeFunctionTool());
-  registry.register(new ReadLogsTool());
   registry.register(new StopSessionTool());
   return registry;
 };

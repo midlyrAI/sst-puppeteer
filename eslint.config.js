@@ -36,4 +36,41 @@ export default tseslint.config(
       ],
     },
   },
+  // Layer boundaries (v0.3): transport <-> domain is a one-way street.
+  // The api/ layer contains TypeScript interfaces only and is freely importable.
+  // Note: these rules catch static `import` and `import type`, NOT dynamic `import('...')`.
+  {
+    files: ['packages/core/src/transport/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../domain/*', '../orchestration/*'],
+              message:
+                'transport/ may not depend on domain/ or orchestration/. Move shared types to api/ or invert the dependency.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/core/src/domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../transport/*', '../orchestration/*'],
+              message:
+                'domain/ is pure logic — may not depend on transport/ or orchestration/.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
