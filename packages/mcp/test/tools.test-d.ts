@@ -11,16 +11,16 @@ import {
   type WaitForReadyInput,
   type WaitForReadyOutput,
   type WaitForReadyTool,
-  type WaitForRedeployInput,
-  type WaitForRedeployOutput,
-  type WaitForRedeployTool,
+  type WaitForNextReadyInput,
+  type WaitForNextReadyOutput,
+  type WaitForNextReadyTool,
 } from '../src/index.js';
 
 test('every concrete Tool subclass matches its declared input/output types', () => {
   expectTypeOf<StartSessionTool>().toMatchTypeOf<Tool<StartSessionInput, StartSessionOutput>>();
   expectTypeOf<WaitForReadyTool>().toMatchTypeOf<Tool<WaitForReadyInput, WaitForReadyOutput>>();
-  expectTypeOf<WaitForRedeployTool>().toMatchTypeOf<
-    Tool<WaitForRedeployInput, WaitForRedeployOutput>
+  expectTypeOf<WaitForNextReadyTool>().toMatchTypeOf<
+    Tool<WaitForNextReadyInput, WaitForNextReadyOutput>
   >();
   expectTypeOf<StopSessionTool>().toMatchTypeOf<Tool<StopSessionInput, StopSessionOutput>>();
 });

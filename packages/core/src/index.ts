@@ -32,13 +32,13 @@ export {
 export type { EventStream } from './transport/event-stream.js';
 
 // Domain (pure logic).
-export { DeployStateMachine, type DeployStateChangeHandler } from './domain/deploy-state-machine.js';
+export { SessionStateMachine, type SessionStateChangeHandler } from './domain/session-state-machine.js';
 export { CommandRegistry, type CommandStatusChangeHandler } from './domain/command-registry.js';
 export { parseSstConfig } from './domain/sst-config-parser.js';
 export { KEY, type KeySequence } from './domain/keystroke-encoder.js';
 export { PaneNavigator, type PaneNavigatorOptions, type NavTarget } from './domain/pane-navigator.js';
 export * from './domain/command.js';
-export * from './domain/deploy-state.js';
+export * from './domain/session-state.js';
 export * from './domain/session-event.js';
 export {
   isSstBusEvent,

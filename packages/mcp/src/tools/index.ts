@@ -7,7 +7,7 @@ import { StartCommandTool } from './start-command-tool.js';
 import { RestartCommandTool } from './restart-command-tool.js';
 import { StopCommandTool } from './stop-command-tool.js';
 import { ReadCommandLogsTool } from './read-command-logs-tool.js';
-import { WaitForRedeployTool } from './wait-for-redeploy-tool.js';
+import { WaitForNextReadyTool } from './wait-for-next-ready-tool.js';
 import { StopSessionTool } from './stop-session-tool.js';
 
 export { TOOL_NAMES, type ToolName } from '../types/tools.js';
@@ -21,7 +21,7 @@ export { StartCommandTool } from './start-command-tool.js';
 export { RestartCommandTool } from './restart-command-tool.js';
 export { StopCommandTool } from './stop-command-tool.js';
 export { ReadCommandLogsTool } from './read-command-logs-tool.js';
-export { WaitForRedeployTool } from './wait-for-redeploy-tool.js';
+export { WaitForNextReadyTool } from './wait-for-next-ready-tool.js';
 export { StopSessionTool } from './stop-session-tool.js';
 
 export const defaultRegistry = (): ToolRegistry => {
@@ -34,7 +34,7 @@ export const defaultRegistry = (): ToolRegistry => {
   registry.register(new RestartCommandTool());
   registry.register(new StopCommandTool());
   registry.register(new ReadCommandLogsTool());
-  registry.register(new WaitForRedeployTool());
+  registry.register(new WaitForNextReadyTool());
   registry.register(new StopSessionTool());
   return registry;
 };

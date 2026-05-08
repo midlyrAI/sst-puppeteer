@@ -1,20 +1,20 @@
-import { DeployFailedError } from '../errors.js';
+import { UpdateFailedError } from '../errors.js';
 import { type Logger, NoopLogger } from '../api/logger.js';
-import { type DeployState } from './deploy-state.js';
+import { type SessionState } from './session-state.js';
 import { type SessionEvent } from './session-event.js';
 
-export type DeployStateChangeHandler = (from: DeployState, to: DeployState) => void;
+export type SessionStateChangeHandler = (from: SessionState, to: SessionState) => void;
 
 interface Waiter {
-  target: DeployState;
+  target: SessionState;
   resolve: () => void;
   reject: (reason: unknown) => void;
   timeoutId: ReturnType<typeof setTimeout> | undefined;
 }
 
-export class DeployStateMachine {
-  private _current: DeployState = 'idle';
-  private _changeHandlers: Set<DeployStateChangeHandler> = new Set();
+export class SessionStateMachine {
+  private _current: SessionState = 'idle';
+  private _changeHandlers: Set<SessionStateChangeHandler> = new Set();
   private _waiters: Array<Waiter> = [];
   private readonly _logger: Logger;
 
@@ -22,7 +22,7 @@ export class DeployStateMachine {
     this._logger = opts?.logger ?? new NoopLogger();
   }
 
-  get current(): DeployState {
+  get current(): SessionState {
     return this._current;
   }
 
@@ -32,7 +32,7 @@ export class DeployStateMachine {
     }
 
     const from = this._current;
-    const to = event.to as DeployState;
+    const to = event.to as SessionState;
 
     if (from === to) {
       return;
@@ -45,7 +45,7 @@ export class DeployStateMachine {
       try {
         handler(from, to);
       } catch (err) {
-        this._logger.error('[DeployStateMachine] onChange handler threw', {
+        this._logger.error('[SessionStateMachine] onChange handler threw', {
           err: err instanceof Error ? err.message : String(err),
         });
       }
@@ -65,7 +65,7 @@ export class DeployStateMachine {
           clearTimeout(waiter.timeoutId);
         }
         waiter.reject(
-          new DeployFailedError(`Deploy failed — state machine transitioned to 'error'`),
+          new UpdateFailedError(`Update failed — state machine transitioned to 'error'`),
         );
       } else {
         remaining.push(waiter);
@@ -74,7 +74,7 @@ export class DeployStateMachine {
     this._waiters = remaining;
   }
 
-  waitFor(target: DeployState, timeoutMs?: number): Promise<void> {
+  waitFor(target: SessionState, timeoutMs?: number): Promise<void> {
     if (this._current === target) {
       return Promise.resolve();
     }
@@ -87,7 +87,7 @@ export class DeployStateMachine {
           // Remove this waiter from the list
           this._waiters = this._waiters.filter((w) => w.timeoutId !== timeoutId);
           reject(
-            new DeployFailedError(
+            new UpdateFailedError(
               `Timed out waiting for state '${target}' (current: '${this._current}')`,
             ),
           );
@@ -99,7 +99,7 @@ export class DeployStateMachine {
     });
   }
 
-  onChange(handler: DeployStateChangeHandler): () => void {
+  onChange(handler: SessionStateChangeHandler): () => void {
     this._changeHandlers.add(handler);
     return () => {
       this._changeHandlers.delete(handler);

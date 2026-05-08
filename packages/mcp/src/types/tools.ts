@@ -2,7 +2,7 @@ import {
   type Command,
   type CommandSpec,
   type CommandStatus,
-  type DeployState,
+  type SessionState,
 } from '@sst-puppeteer/core';
 
 export const TOOL_NAMES = [
@@ -14,7 +14,7 @@ export const TOOL_NAMES = [
   'restart_command',
   'stop_command',
   'read_command_logs',
-  'wait_for_redeploy',
+  'wait_for_next_ready',
   'stop_session',
 ] as const;
 
@@ -35,7 +35,7 @@ export interface WaitForReadyInput {
   readonly timeoutMs?: number;
 }
 export interface WaitForReadyOutput {
-  readonly state: DeployState;
+  readonly state: SessionState;
   readonly durationMs: number;
 }
 
@@ -90,13 +90,13 @@ export interface ReadCommandLogsOutput {
   readonly lines: readonly string[];
 }
 
-export interface WaitForRedeployInput {
+export interface WaitForNextReadyInput {
   readonly sessionId: string;
   readonly timeoutMs?: number;
   readonly commandName?: string;
 }
-export interface WaitForRedeployOutput {
-  readonly state: DeployState;
+export interface WaitForNextReadyOutput {
+  readonly state: SessionState;
   readonly durationMs: number;
 }
 

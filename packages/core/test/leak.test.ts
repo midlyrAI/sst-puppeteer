@@ -159,7 +159,7 @@ describe('SessionBuilder — graceful shutdown', () => {
       paneLogWatcherFactory: () => new PaneLogWatcher({ projectDir, pollIntervalMs: 30 }),
     }).build();
 
-    // Emit StackCommandEvent to transition to deploying — CompleteEvent is never sent
+    // Emit StackCommandEvent to transition to busy — CompleteEvent is never sent
     const startPromise = session.start();
     setTimeout(() => {
       stream.emit({

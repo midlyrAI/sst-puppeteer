@@ -1,4 +1,4 @@
-import { type DeployState } from '../domain/deploy-state.js';
+import { type SessionState } from '../domain/session-state.js';
 
 export interface WaitOptions {
   readonly timeoutMs?: number;
@@ -16,18 +16,18 @@ export interface WaitOptions {
  * await session.stop();
  * ```
  *
- * @throws {DeployFailedError} when a deploy enters the `'error'` terminal state.
+ * @throws {UpdateFailedError} when a deploy enters the `'error'` terminal state.
  * @throws {StreamConnectionError} when the underlying `/stream` connection
  * is exhausted; the session transitions to `'disconnected'` and all
  * lifecycle waits reject with this error.
  */
 export interface ISessionLifecycle {
   readonly id: string;
-  readonly state: DeployState;
+  readonly state: SessionState;
   start(): Promise<void>;
   stop(): Promise<void>;
-  waitForReady(opts?: WaitOptions): Promise<{ state: DeployState; durationMs: number }>;
-  waitForRedeploy(
+  waitForReady(opts?: WaitOptions): Promise<{ state: SessionState; durationMs: number }>;
+  waitForNextReady(
     opts?: WaitOptions & { commandName?: string },
-  ): Promise<{ state: DeployState; durationMs: number }>;
+  ): Promise<{ state: SessionState; durationMs: number }>;
 }

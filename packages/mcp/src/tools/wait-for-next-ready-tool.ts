@@ -1,9 +1,9 @@
 import { type SSTSession } from '@sst-puppeteer/core';
 import { Tool, type ToolInputSchema } from './tool.js';
-import { type WaitForRedeployInput, type WaitForRedeployOutput } from '../types/tools.js';
+import { type WaitForNextReadyInput, type WaitForNextReadyOutput } from '../types/tools.js';
 
-export class WaitForRedeployTool extends Tool<WaitForRedeployInput, WaitForRedeployOutput> {
-  readonly name = 'wait_for_redeploy';
+export class WaitForNextReadyTool extends Tool<WaitForNextReadyInput, WaitForNextReadyOutput> {
+  readonly name = 'wait_for_next_ready';
   readonly description =
     'Block until the next deploy cycle (after a code edit) completes — ready or error.';
   readonly inputSchema: ToolInputSchema = {
@@ -16,8 +16,8 @@ export class WaitForRedeployTool extends Tool<WaitForRedeployInput, WaitForRedep
     required: ['sessionId'],
   };
 
-  async execute(session: SSTSession, input: WaitForRedeployInput): Promise<WaitForRedeployOutput> {
-    const result = await session.waitForRedeploy({
+  async execute(session: SSTSession, input: WaitForNextReadyInput): Promise<WaitForNextReadyOutput> {
+    const result = await session.waitForNextReady({
       timeoutMs: input.timeoutMs,
       commandName: input.commandName,
     });

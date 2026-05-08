@@ -2,7 +2,7 @@
  * session-lifecycle.test.ts
  *
  * Integration-style tests for SSTSession using MockPtyAdapter + FakeEventStream.
- * Drives deploy-state transitions by emitting `/stream` bus events through
+ * Drives session-state transitions by emitting `/stream` bus events through
  * the injected event stream.
  */
 
@@ -225,7 +225,7 @@ describe('SSTSession — start() early-exit detection', () => {
 // ---------------------------------------------------------------------------
 
 describe('SSTSession — state machine via /stream events', () => {
-  it('Test 7: transitions idle→deploying→ready from /stream events and emits state-change events', async () => {
+  it('Test 7: transitions idle→busy→ready from /stream events and emits state-change events', async () => {
     const projectDir = makeTempProjectDir();
     const adapter = new MockPtyAdapter();
 
@@ -251,8 +251,8 @@ describe('SSTSession — state machine via /stream events', () => {
     await session.start();
 
     expect(session.state).toBe('ready');
-    expect(stateChanges).toContainEqual({ from: 'idle', to: 'deploying' });
-    expect(stateChanges).toContainEqual({ from: 'deploying', to: 'ready' });
+    expect(stateChanges).toContainEqual({ from: 'idle', to: 'busy' });
+    expect(stateChanges).toContainEqual({ from: 'busy', to: 'ready' });
 
     await session.stop();
   }, 10_000);

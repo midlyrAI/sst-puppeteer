@@ -5,7 +5,7 @@ import {
   CommandNotFoundError,
   CommandNotRunningError,
   ConfigNotFoundError,
-  DeployFailedError,
+  UpdateFailedError,
   StreamConnectionError,
 } from '../errors.js';
 import { NoopLogger } from '../api/logger.js';
@@ -15,9 +15,9 @@ import { type Unsubscribe } from '../api/observable.js';
 import { type Logger } from '../api/logger.js';
 import { type SessionOptions } from '../api/session-options.js';
 import { type SessionEvent, type StateChangeEvent } from '../domain/session-event.js';
-import { type DeployState } from '../domain/deploy-state.js';
+import { type SessionState } from '../domain/session-state.js';
 import { type Command, type CommandStatus } from '../domain/command.js';
-import { DeployStateMachine } from '../domain/deploy-state-machine.js';
+import { SessionStateMachine } from '../domain/session-state-machine.js';
 import { CommandRegistry } from '../domain/command-registry.js';
 import { PtySource } from '../transport/pty-source.js';
 import { type EventStream } from '../transport/event-stream.js';
@@ -49,7 +49,7 @@ export class SSTSession implements ISession {
   protected readonly logger: Logger;
   protected readonly options: SessionOptions;
 
-  private readonly _deployStateMachine: DeployStateMachine;
+  private readonly _sessionStateMachine: SessionStateMachine;
   private readonly _commandRegistry: CommandRegistry;
   private readonly _eventHandlers: Map<string, Set<AnyEventHandler>> = new Map();
 
@@ -75,12 +75,12 @@ export class SSTSession implements ISession {
     this.id = _generateId();
     this.logger = options.logger ?? new NoopLogger();
     this.options = options;
-    this._deployStateMachine = new DeployStateMachine({ logger: this.logger });
+    this._sessionStateMachine = new SessionStateMachine({ logger: this.logger });
     this._commandRegistry = new CommandRegistry({ logger: this.logger });
   }
 
-  get state(): DeployState {
-    return this._deployStateMachine.current;
+  get state(): SessionState {
+    return this._sessionStateMachine.current;
   }
 
   async start(): Promise<void> {
@@ -240,7 +240,7 @@ export class SSTSession implements ISession {
     });
 
     // Race: wait for 'ready' state OR early exit from SST
-    const readyPromise = this._deployStateMachine.waitFor('ready', 5 * 60 * 1000);
+    const readyPromise = this._sessionStateMachine.waitFor('ready', 5 * 60 * 1000);
     const exitRejector = this._parentExitPromise.then(({ code, signal }) => {
       throw new Error(
         `sst dev exited during startup (code=${code}, signal=${signal}). ` +
@@ -295,14 +295,14 @@ export class SSTSession implements ISession {
     this._parentExitPromise = null;
   }
 
-  async waitForReady(opts?: WaitOptions): Promise<{ state: DeployState; durationMs: number }> {
+  async waitForReady(opts?: WaitOptions): Promise<{ state: SessionState; durationMs: number }> {
     if (this.state === 'disconnected') {
       throw this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0);
     }
 
     const startedAt = Date.now();
     const timeoutMs = opts?.timeoutMs ?? 5 * 60 * 1000;
-    await this._raceWithDisconnect(this._deployStateMachine.waitFor('ready', timeoutMs));
+    await this._raceWithDisconnect(this._sessionStateMachine.waitFor('ready', timeoutMs));
 
     // Wait for autostart commands
     const autostartCommands = this._commandRegistry
@@ -313,7 +313,7 @@ export class SSTSession implements ISession {
       const elapsed = Date.now() - startedAt;
       const remaining = timeoutMs - elapsed;
       if (remaining <= 0) {
-        throw new DeployFailedError(
+        throw new UpdateFailedError(
           `waitForReady timed out waiting for autostart command '${cmd.spec.name}'`,
         );
       }
@@ -325,9 +325,9 @@ export class SSTSession implements ISession {
     return { state: this.state, durationMs: Date.now() - startedAt };
   }
 
-  async waitForRedeploy(
+  async waitForNextReady(
     opts?: WaitOptions & { commandName?: string },
-  ): Promise<{ state: DeployState; durationMs: number }> {
+  ): Promise<{ state: SessionState; durationMs: number }> {
     if (this.state === 'disconnected') {
       throw this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0);
     }
@@ -342,12 +342,12 @@ export class SSTSession implements ISession {
       }
 
       return this._raceWithDisconnect(
-        new Promise<{ state: DeployState; durationMs: number }>((resolve, reject) => {
+        new Promise<{ state: SessionState; durationMs: number }>((resolve, reject) => {
           let phase: 'waiting-for-exit' | 'waiting-for-running' = 'waiting-for-exit';
 
           const timer = setTimeout(() => {
             unsub();
-            reject(new DeployFailedError(`waitForRedeploy timed out for command '${name}'`));
+            reject(new UpdateFailedError(`waitForNextReady timed out for command '${name}'`));
           }, timeoutMs);
 
           const unsub = this._commandRegistry.onChange((changedName, _from, to) => {
@@ -364,7 +364,7 @@ export class SSTSession implements ISession {
               } else if (to === 'errored') {
                 clearTimeout(timer);
                 unsub();
-                reject(new DeployFailedError(`Command '${name}' errored during redeploy`));
+                reject(new UpdateFailedError(`Command '${name}' errored during redeploy`));
               }
             }
           });
@@ -373,17 +373,17 @@ export class SSTSession implements ISession {
     }
 
     return this._raceWithDisconnect(
-      new Promise<{ state: DeployState; durationMs: number }>((resolve, reject) => {
-        let phase: 'waiting-for-deploying' | 'waiting-for-ready' = 'waiting-for-deploying';
+      new Promise<{ state: SessionState; durationMs: number }>((resolve, reject) => {
+        let phase: 'waiting-for-busy' | 'waiting-for-ready' = 'waiting-for-busy';
 
         const timer = setTimeout(() => {
           unsub();
-          reject(new DeployFailedError('waitForRedeploy timed out'));
+          reject(new UpdateFailedError('waitForNextReady timed out'));
         }, timeoutMs);
 
-        const unsub = this._deployStateMachine.onChange((_from, to) => {
-          if (phase === 'waiting-for-deploying') {
-            if (to === 'deploying') phase = 'waiting-for-ready';
+        const unsub = this._sessionStateMachine.onChange((_from, to) => {
+          if (phase === 'waiting-for-busy') {
+            if (to === 'busy') phase = 'waiting-for-ready';
           } else if (phase === 'waiting-for-ready') {
             if (to === 'ready') {
               clearTimeout(timer);
@@ -392,7 +392,7 @@ export class SSTSession implements ISession {
             } else if (to === 'error') {
               clearTimeout(timer);
               unsub();
-              reject(new DeployFailedError(`Deploy failed during redeploy — state became 'error'`));
+              reject(new UpdateFailedError(`Update failed during dev cycle — state became 'error'`));
             }
           }
         });
@@ -557,7 +557,7 @@ export class SSTSession implements ISession {
   private _raceWithDisconnect<T>(promise: Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       let settled = false;
-      const unsub = this._deployStateMachine.onChange((_from, to) => {
+      const unsub = this._sessionStateMachine.onChange((_from, to) => {
         if (to === 'disconnected' && !settled) {
           settled = true;
           unsub();
@@ -630,20 +630,20 @@ export class SSTSession implements ISession {
     switch (msg.type) {
       case 'project.StackCommandEvent': {
         if (msg.event.Command === 'deploy') {
-          const cur = this._deployStateMachine.current;
+          const cur = this._sessionStateMachine.current;
           if (cur === 'idle' || cur === 'ready') {
-            this._dispatchStateChange(cur, 'deploying');
+            this._dispatchStateChange(cur, 'busy');
           }
         }
         break;
       }
       case 'project.CompleteEvent': {
         this._syncFromCompleteEvent(msg.event);
-        const cur = this._deployStateMachine.current;
+        const cur = this._sessionStateMachine.current;
         // /stream replays the most recent CompleteEvent on connect, so we may
         // observe it from any state — accept the transition unconditionally.
         const errored = (msg.event.Errors?.length ?? 0) > 0;
-        const target: DeployState = errored ? 'error' : 'ready';
+        const target: SessionState = errored ? 'error' : 'ready';
         if (cur !== target && cur !== 'disconnected') {
           this._dispatchStateChange(cur, target);
         }
@@ -651,7 +651,7 @@ export class SSTSession implements ISession {
       }
       case 'project.BuildFailedEvent':
       case 'deployer.DeployFailedEvent': {
-        const cur = this._deployStateMachine.current;
+        const cur = this._sessionStateMachine.current;
         if (cur !== 'error' && cur !== 'disconnected') {
           this._dispatchStateChange(cur, 'error');
         }
@@ -665,7 +665,7 @@ export class SSTSession implements ISession {
   private _handleStreamError(err: Error): void {
     if (err instanceof StreamConnectionError) {
       this._disconnectError = err;
-      const from = this._deployStateMachine.current;
+      const from = this._sessionStateMachine.current;
       if (from !== 'disconnected') {
         this._dispatchStateChange(from, 'disconnected');
       }
@@ -705,8 +705,8 @@ export class SSTSession implements ISession {
     });
   }
 
-  private _dispatchStateChange(from: DeployState, to: DeployState): void {
-    if (this._deployStateMachine.current !== from) {
+  private _dispatchStateChange(from: SessionState, to: SessionState): void {
+    if (this._sessionStateMachine.current !== from) {
       return;
     }
 
@@ -717,7 +717,7 @@ export class SSTSession implements ISession {
       timestamp: Date.now(),
     };
 
-    this._deployStateMachine.transition(event);
+    this._sessionStateMachine.transition(event);
     this._emit(event);
   }
 

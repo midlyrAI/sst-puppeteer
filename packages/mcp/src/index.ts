@@ -11,7 +11,7 @@ export {
   RestartCommandTool,
   StopCommandTool,
   ReadCommandLogsTool,
-  WaitForRedeployTool,
+  WaitForNextReadyTool,
   StopSessionTool,
   defaultRegistry,
 } from './tools/index.js';

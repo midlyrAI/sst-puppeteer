@@ -14,8 +14,8 @@ export class NotImplementedError extends SstPuppeteerError {
   }
 }
 
-export class DeployFailedError extends SstPuppeteerError {
-  override readonly name = 'DeployFailedError';
+export class UpdateFailedError extends SstPuppeteerError {
+  override readonly name = 'UpdateFailedError';
 
   constructor(
     message: string,

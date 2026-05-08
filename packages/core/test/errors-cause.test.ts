@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import {
   SstPuppeteerError,
   NotImplementedError,
-  DeployFailedError,
+  UpdateFailedError,
   CommandNotFoundError,
   CommandAlreadyRunningError,
   CommandNotRunningError,
@@ -34,8 +34,8 @@ describe('typed errors — cause propagation', () => {
     expect(err.message).toContain('MySymbol');
   });
 
-  it('DeployFailedError sets .cause', () => {
-    const err = new DeployFailedError('deploy failed', 'arn:aws:cf:stack', { cause: CAUSE });
+  it('UpdateFailedError sets .cause', () => {
+    const err = new UpdateFailedError('deploy failed', 'arn:aws:cf:stack', { cause: CAUSE });
     expect(err.cause).toBe(CAUSE);
     expect(err).toBeInstanceOf(SstPuppeteerError);
   });

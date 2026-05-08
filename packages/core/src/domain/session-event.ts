@@ -1,12 +1,12 @@
 import { type CommandLastExit, type CommandStatus } from './command.js';
 
-export type DeployStateName = 'idle' | 'deploying' | 'ready' | 'error' | 'disconnected';
+export type SessionStateName = 'idle' | 'busy' | 'ready' | 'error' | 'disconnected';
 
 export interface StateChangeEvent {
   readonly type: 'state-change';
   readonly timestamp: number;
-  readonly from: DeployStateName;
-  readonly to: DeployStateName;
+  readonly from: SessionStateName;
+  readonly to: SessionStateName;
 }
 
 export interface DeployProgressEvent {
