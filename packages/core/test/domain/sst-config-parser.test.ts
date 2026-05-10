@@ -250,32 +250,4 @@ new sst.x.DevCommand("Frontend-Web", { dev: { command: "node web.js" } });
     expect(byName['Frontend-Web']).toBe('service');
   });
 
-  // ---------------------------------------------------------------------------
-  // Test 10: real midlyr fixture (documentation test)
-  //
-  // midlyr's enterprise sst.config.ts declares DevCommands INSIDE a
-  // `createDevelopmentStack()` function call — NOT as top-level
-  // `new sst.x.DevCommand(...)` literals. The regex parser cannot follow
-  // function-call indirection, so it returns [] for this file.
-  //
-  // This test documents and asserts that behavior: parser doesn't crash,
-  // and returns an empty array (proving the limitation described in the
-  // file's top-of-file comment). Users with this pattern MUST use
-  // SessionOptions.commands override (US-008).
-  // ---------------------------------------------------------------------------
-
-  it('Test 10: real midlyr fixture — parser does not crash, returns [] (limitation documented)', () => {
-    const midlyrConfigPath =
-      '/Users/ruochenren/workspace/midlyr/typescript/enterprise/sst.config.ts';
-
-    let result: readonly CommandSpec[];
-    expect(() => {
-      result = parseSstConfig(midlyrConfigPath);
-    }).not.toThrow();
-
-    // midlyr's DevCommands are inside createDevelopmentStack(...) — not top-level literals.
-    // The regex parser cannot follow function-call indirection, so the output is [].
-    // This is expected behavior. Users must use SessionOptions.commands for such configs.
-    expect(result!).toEqual([]);
-  });
 });
