@@ -14,7 +14,7 @@ import * as crypto from 'node:crypto';
 import {
   SessionBuilder,
   PaneLogWatcher,
-  type PtyAdapter,
+  type Pty,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
@@ -24,10 +24,10 @@ import {
 import { FakeEventStream } from './helpers/fake-event-stream.js';
 
 // ---------------------------------------------------------------------------
-// Noop PtyAdapter
+// Noop Pty
 // ---------------------------------------------------------------------------
 
-class NoopPtyAdapter implements PtyAdapter {
+class NoopPty implements Pty {
   readonly pid: number | null = null;
 
   private _exitHandlers: Set<PtyExitHandler> = new Set();
@@ -100,7 +100,7 @@ describe('SessionBuilder — handle/request leak', () => {
     }
 
     const projectDir = makeTempProjectDir();
-    const adapter = new NoopPtyAdapter();
+    const adapter = new NoopPty();
     const stream = new FakeEventStream<SstBusEvent>();
 
     const session = new SessionBuilder({
@@ -148,7 +148,7 @@ describe('SessionBuilder — handle/request leak', () => {
 describe('SessionBuilder — graceful shutdown', () => {
   it('stop() resolves within 10s even when start() is still waiting for ready', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new NoopPtyAdapter();
+    const adapter = new NoopPty();
     const stream = new FakeEventStream<SstBusEvent>();
 
     const session = new SessionBuilder({

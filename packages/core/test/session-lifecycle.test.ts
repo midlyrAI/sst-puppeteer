@@ -1,7 +1,7 @@
 /**
  * session-lifecycle.test.ts
  *
- * Integration-style tests for SSTSession using MockPtyAdapter + FakeEventStream.
+ * Integration-style tests for SSTSession using MockPty + FakeEventStream.
  * Drives session-state transitions by emitting `/stream` bus events through
  * the injected event stream.
  */
@@ -21,16 +21,16 @@ import {
   CommandNotRunningError,
   type CommandRegistry,
   SSTSession,
-  type PtyAdapter,
+  type Pty,
   type SstBusEvent,
 } from '../src/index.js';
 import { FakeEventStream } from './helpers/fake-event-stream.js';
 
 // ---------------------------------------------------------------------------
-// MockPtyAdapter — controllable test double
+// MockPty — controllable test double
 // ---------------------------------------------------------------------------
 
-class MockPtyAdapter implements PtyAdapter {
+class MockPty implements Pty {
   readonly pid: number | null = 1234;
 
   spawnCalls: PtySpawnOptions[] = [];
@@ -106,7 +106,7 @@ function makeTempProjectDir(): string {
   return dir;
 }
 
-import type { SessionOptions } from '../src/api/session-options.js';
+import type { SessionOptions } from '../src/domain/session/session-options.js';
 
 interface FakeRig {
   stream: FakeEventStream<SstBusEvent>;
@@ -114,7 +114,7 @@ interface FakeRig {
 
 /** Build a session with an injected FakeEventStream. */
 function buildSession(
-  adapter: MockPtyAdapter,
+  adapter: MockPty,
   projectDir: string,
   overrides: Partial<SessionOptions> = {},
 ): { session: SSTSession; rig: FakeRig } {
@@ -149,7 +149,7 @@ function driveToReady(stream: FakeEventStream<SstBusEvent>): void {
 describe('SSTSession — pre-start guard', () => {
   it('Test 1: getCommandStatus throws CommandNotFoundError for unknown command', () => {
     const session = new SSTSession({
-      adapter: new MockPtyAdapter(),
+      adapter: new MockPty(),
       projectDir: '/tmp/fake',
       commands: [],
     });
@@ -159,7 +159,7 @@ describe('SSTSession — pre-start guard', () => {
 
   it('Test 2: startCommand throws CommandNotFoundError for unknown command', async () => {
     const session = new SSTSession({
-      adapter: new MockPtyAdapter(),
+      adapter: new MockPty(),
       projectDir: '/tmp/fake',
       commands: [],
     });
@@ -169,7 +169,7 @@ describe('SSTSession — pre-start guard', () => {
 
   it('Test 3: stopCommand throws CommandNotFoundError for unknown command', async () => {
     const session = new SSTSession({
-      adapter: new MockPtyAdapter(),
+      adapter: new MockPty(),
       projectDir: '/tmp/fake',
       commands: [],
     });
@@ -179,7 +179,7 @@ describe('SSTSession — pre-start guard', () => {
 
   it('Test 4: restartCommand throws CommandNotFoundError for unknown command', async () => {
     const session = new SSTSession({
-      adapter: new MockPtyAdapter(),
+      adapter: new MockPty(),
       projectDir: '/tmp/fake',
       commands: [],
     });
@@ -189,7 +189,7 @@ describe('SSTSession — pre-start guard', () => {
 
   it('Test 5: readCommandLogs throws CommandNotFoundError for unknown command', async () => {
     const session = new SSTSession({
-      adapter: new MockPtyAdapter(),
+      adapter: new MockPty(),
       projectDir: '/tmp/fake',
       commands: [],
     });
@@ -208,7 +208,7 @@ describe('SSTSession — start() early-exit detection', () => {
   it('Test 6: start() rejects with diagnostic message when SST exits before ready', async () => {
     const projectDir = makeTempProjectDir();
 
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
     const { session } = buildSession(adapter, projectDir, { commands: [] });
 
     const startPromise = session.start();
@@ -227,7 +227,7 @@ describe('SSTSession — start() early-exit detection', () => {
 describe('SSTSession — state machine via /stream events', () => {
   it('Test 7: transitions idle→busy→ready from /stream events and emits state-change events', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, {
       commands: [
@@ -265,7 +265,7 @@ describe('SSTSession — state machine via /stream events', () => {
 describe('SSTSession — startCommand keystroke sequencing', () => {
   it('Test 8: startCommand navigates to pane and sends Enter; resolves running after registry confirms', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, {
       commands: [
@@ -307,7 +307,7 @@ describe('SSTSession — startCommand keystroke sequencing', () => {
 
   it('Test 9: startCommand throws CommandAlreadyRunningError when pane is running', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, {
       commands: [
@@ -334,7 +334,7 @@ describe('SSTSession — startCommand keystroke sequencing', () => {
 
   it('Test 10: stopCommand throws CommandNotRunningError when pane is idle', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, {
       commands: [
@@ -364,7 +364,7 @@ describe('SSTSession — startCommand keystroke sequencing', () => {
 describe('SSTSession — readCommandLogs', () => {
   it('Test 11: readCommandLogs returns empty array when per-command log file does not exist', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, {
       commands: [
@@ -389,7 +389,7 @@ describe('SSTSession — readCommandLogs', () => {
 
   it('Test 12: readCommandLogs reads lines from per-command log file and applies limit', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const logDir = path.join(projectDir, '.sst', 'log');
     fs.mkdirSync(logDir, { recursive: true });
@@ -421,7 +421,7 @@ describe('SSTSession — readCommandLogs', () => {
 
   it('Test 13: readCommandLogs throws CommandNotFoundError for unknown command', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, { commands: [] });
 
@@ -443,7 +443,7 @@ describe('SSTSession — readCommandLogs', () => {
 describe('SSTSession — commands override', () => {
   it('Test 14: SessionOptions.commands bypasses sst.config.ts and registers specs directly', async () => {
     const projectDir = makeTempProjectDir();
-    const adapter = new MockPtyAdapter();
+    const adapter = new MockPty();
 
     const { session, rig } = buildSession(adapter, projectDir, {
       commands: [

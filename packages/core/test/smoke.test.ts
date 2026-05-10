@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  type PtyAdapter,
+  type Pty,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
@@ -9,7 +9,7 @@ import {
   SSTSession,
 } from '../src/index.js';
 
-class MockPtyAdapter implements PtyAdapter {
+class MockPty implements Pty {
   readonly pid: number | null = null;
   async spawn(_opts: PtySpawnOptions): Promise<void> {
     // no-op for construction tests
@@ -28,7 +28,7 @@ class MockPtyAdapter implements PtyAdapter {
 describe('SSTSession smoke', () => {
   const buildSession = (): SSTSession =>
     new SSTSession({
-      adapter: new MockPtyAdapter(),
+      adapter: new MockPty(),
       projectDir: '/tmp/fake-project',
     });
 
@@ -95,7 +95,7 @@ describe('SSTSession smoke', () => {
 
     try {
       // Use a special adapter that fires exit immediately to make start() fail fast
-      const fakeAdapter: typeof MockPtyAdapter.prototype = {
+      const fakeAdapter: typeof MockPty.prototype = {
         pid: null,
         async spawn() {},
         write() {},

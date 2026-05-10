@@ -1,11 +1,21 @@
-import { type EventStream } from '../../src/transport/event-stream.js';
+/**
+ * Test-only contract describing the public surface of an event stream.
+ * Mirrors `HttpEventStream`'s shape so test fakes can stand in via TS
+ * structural typing (no production interface required).
+ */
+interface EventStreamShape<TEvent> {
+  start(opts: { url: string; signal?: AbortSignal }): Promise<void>;
+  stop(): Promise<void>;
+  onEvent(h: (e: TEvent) => void): () => void;
+  onError(h: (e: Error) => void): () => void;
+}
 
 /**
- * Hand-rolled in-memory {@link EventStream} for tests. Lets a test push
+ * Hand-rolled in-memory event stream for tests. Lets a test push
  * events and errors into the session synchronously without touching the
  * network or filesystem.
  */
-export class FakeEventStream<TEvent> implements EventStream<TEvent> {
+export class FakeEventStream<TEvent> implements EventStreamShape<TEvent> {
   private events = new Set<(e: TEvent) => void>();
   private errors = new Set<(e: Error) => void>();
   startCalls: { url: string }[] = [];

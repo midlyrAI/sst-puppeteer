@@ -25,8 +25,10 @@ const BANNED_AWS = /from\s+['"]@aws-sdk\/[^'"]+['"]/;
 const BANNED_AWS_DYNAMIC = /import\(\s*['"]@aws-sdk\/[^'"]+['"]/;
 
 describe('core isolation', () => {
-  it('node-pty / child_process / bun are confined to transport/', () => {
-    const files = collectTsFiles(SRC_DIR).filter((f) => !f.startsWith(join(SRC_DIR, 'transport')));
+  it('node-pty / child_process / bun are confined to infra/pty/', () => {
+    const files = collectTsFiles(SRC_DIR).filter(
+      (f) => !f.startsWith(join(SRC_DIR, 'infra', 'pty')),
+    );
     expect(files.length).toBeGreaterThan(0);
     const offenders: string[] = [];
     for (const file of files) {

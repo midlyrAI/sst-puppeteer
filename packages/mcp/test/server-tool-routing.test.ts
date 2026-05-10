@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   NotImplementedError,
   type CommandSpec,
-  type PtyAdapter,
+  type Pty,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
@@ -12,7 +12,7 @@ import {
 import { type McpServer, Transport, createMcpServer, defaultRegistry } from '../src/index.js';
 import { type SessionFactory } from '../src/server.js';
 
-class StubPtyAdapter implements PtyAdapter {
+class StubPty implements Pty {
   readonly pid: number | null = null;
   async spawn(_o: PtySpawnOptions): Promise<void> {
     throw new NotImplementedError('stub.spawn');
@@ -41,7 +41,7 @@ class MockTransport extends Transport {
 
 const buildStubSession = (): SSTSession =>
   new SSTSession({
-    adapter: new StubPtyAdapter(),
+    adapter: new StubPty(),
     projectDir: '/tmp/test-project',
   });
 

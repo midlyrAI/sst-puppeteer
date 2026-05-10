@@ -1,56 +1,52 @@
-export * from './errors.js';
+export * from './common/error/errors.js';
 export * from './constants.js';
 
-// Public API contracts (interfaces only — no runtime code).
-export type { ISession } from './api/session.js';
-export type { ISessionLifecycle, WaitOptions } from './api/session-lifecycle.js';
-export type { ICommandLifecycle } from './api/command-lifecycle.js';
-export type { ICommandStateReader } from './api/command-state-reader.js';
-export type { IObservable, Unsubscribe } from './api/observable.js';
-export type { SessionOptions } from './api/session-options.js';
+// Public API contracts — deleted interfaces removed, kept types preserved.
+export type { WaitOptions, Unsubscribe, SessionOptions } from './domain/session/session-options.js';
 export type {
-  PtyAdapter,
+  Pty,
   PtySpawnOptions,
   PtyDataHandler,
   PtyExitHandler,
   PtyUnsubscribe,
-} from './api/pty-adapter.js';
-export { Logger, NoopLogger } from './api/logger.js';
+} from './infra/pty/node-pty-adapter.js';
+export { Logger, NoopLogger } from './common/logger/logger.js';
 
 // Transport implementations.
-export { ConsoleLogger } from './transport/logger.js';
-export { NodePtyAdapter } from './transport/node-pty-adapter.js';
-export { PtySource, type RawPtyEvent } from './transport/pty-source.js';
+export { ConsoleLogger } from './common/logger/logger.js';
+export { NodePtyAdapter } from './infra/pty/node-pty-adapter.js';
 export {
   ServerFileWatcher,
   type ServerFileWatcherOptions,
-} from './transport/server-file-watcher.js';
-export { HttpEventStream, type HttpEventStreamOptions } from './transport/http-event-stream.js';
+} from './infra/discovery/server-file-watcher.js';
+export { HttpEventStream, type HttpEventStreamOptions } from './infra/stream/http-event-stream.js';
 export {
   PaneLogWatcher,
   type PaneLogWatcherOptions,
   type StartedEvent,
   type StoppedEvent,
   type AppendEvent,
-} from './transport/pane-log-watcher.js';
-export type { EventStream } from './transport/event-stream.js';
+} from './infra/pane-log/pane-log-watcher.js';
 
 // Domain (pure logic).
 export {
   SessionStateMachine,
   type SessionStateChangeHandler,
-} from './domain/session-state-machine.js';
-export { CommandRegistry, type CommandStatusChangeHandler } from './domain/command-registry.js';
-export { parseSstConfig } from './domain/sst-config-parser.js';
-export { KEY, type KeySequence } from './domain/keystroke-encoder.js';
+} from './domain/state/session-state-machine.js';
+export {
+  CommandRegistry,
+  type CommandStatusChangeHandler,
+} from './domain/command/command-registry.js';
+export { parseSstConfig } from './infra/config/sst-config-parser.js';
+export { KEY, type KeySequence } from './common/keystroke/keystroke-encoder.js';
 export {
   PaneNavigator,
   type PaneNavigatorOptions,
   type NavTarget,
-} from './domain/pane-navigator.js';
-export * from './domain/command.js';
-export * from './domain/session-state.js';
-export * from './domain/session-event.js';
+} from './domain/pane/pane-navigator.js';
+export * from './common/contract/command.js';
+export * from './domain/state/session-state.js';
+export * from './domain/session/session-event.js';
 export {
   isSstBusEvent,
   isKnownStreamType,
@@ -68,8 +64,8 @@ export {
   type CancelledEvent,
   type SkipEvent,
   type FileChangedEvent,
-} from './domain/sst-bus-event.js';
+} from './infra/stream/sst-bus-event.js';
 
 // Orchestration.
-export { SSTSession } from './orchestration/session.js';
-export { SessionBuilder } from './orchestration/session-builder.js';
+export { SSTSession } from './domain/session/sst-session.js';
+export { SessionBuilder } from './domain/session/session-builder.js';

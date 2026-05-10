@@ -17,4 +17,4 @@ export const DEFAULT_TIMEOUTS = {
 export const DEFAULT_INVOCATION_HISTORY_LIMIT = 100;
 export const DEFAULT_DEDUP_TTL_MS = 5_000;
 
-export { SESSION_STATES } from './domain/session-state.js';
+export { SESSION_STATES } from './domain/state/session-state.js';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   NotImplementedError,
-  type PtyAdapter,
+  type Pty,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
@@ -10,7 +10,7 @@ import {
 } from '@sst-puppeteer/core';
 import { Tool, TOOL_NAMES, defaultRegistry } from '../src/index.js';
 
-class StubPtyAdapter implements PtyAdapter {
+class StubPty implements Pty {
   readonly pid: number | null = null;
   async spawn(_o: PtySpawnOptions): Promise<void> {
     throw new NotImplementedError('stub.spawn');
@@ -34,7 +34,7 @@ class StubPtyAdapter implements PtyAdapter {
 
 const buildSession = (): SSTSession =>
   new SSTSession({
-    adapter: new StubPtyAdapter(),
+    adapter: new StubPty(),
     projectDir: '/tmp/x',
   });
 
