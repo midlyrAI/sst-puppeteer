@@ -1,10 +1,4 @@
-export const EVENT_TYPES = [
-  'state-change',
-  'deploy-progress',
-  'command-status-change',
-  'log-line',
-  'error',
-] as const;
+export const EVENT_TYPES = ['state-change', 'command-status-change', 'log-line', 'error'] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
 

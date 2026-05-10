@@ -4,7 +4,7 @@ import { type SessionEvent, type SessionOptions } from '../../../src/index.js';
 
 test('SessionEvent is a discriminated union with the expected variants', () => {
   expectTypeOf<SessionEvent['type']>().toEqualTypeOf<
-    'state-change' | 'deploy-progress' | 'command-status-change' | 'log-line' | 'error'
+    'state-change' | 'command-status-change' | 'log-line' | 'error'
   >();
 });
 

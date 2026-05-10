@@ -135,10 +135,12 @@ export class HttpEventStream<TEvent> implements EventStreamLike<TEvent> {
     let attempt = 0;
     while (!this._stopped && !signal.aborted) {
       try {
-        await this._runOnce(url, signal);
+        const dispatchedAny = await this._runOnce(url, signal);
         if (this._stopped || signal.aborted) return;
-        // Stream ended cleanly while we still want events — treat as a drop.
-        attempt++;
+        // Reset the budget when we successfully delivered events before the
+        // close — only consecutive failed connects exhaust the budget.
+        if (dispatchedAny) attempt = 0;
+        else attempt++;
       } catch (err) {
         if (signal.aborted || this._stopped) return;
         const e = err instanceof Error ? err : new Error(String(err));
@@ -163,7 +165,8 @@ export class HttpEventStream<TEvent> implements EventStreamLike<TEvent> {
     }
   }
 
-  private async _runOnce(url: string, signal: AbortSignal): Promise<void> {
+  /** Returns true if at least one JSON object was dispatched during the read. */
+  private async _runOnce(url: string, signal: AbortSignal): Promise<boolean> {
     const res = await this._fetch(url, { signal });
     if (!res.ok || !res.body) {
       throw new Error(`HttpEventStream: bad response ${res.status} from ${url}`);
@@ -171,6 +174,7 @@ export class HttpEventStream<TEvent> implements EventStreamLike<TEvent> {
     const reader = res.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buf = '';
+    let dispatchedAny = false;
     // Brace-depth scanner state: SST's /stream is concatenated JSON with no
     // delimiters between objects, despite the `application/x-ndjson` header.
     // We scan for top-level object boundaries instead of newlines.
@@ -209,6 +213,7 @@ export class HttpEventStream<TEvent> implements EventStreamLike<TEvent> {
             if (depth === 0 && objectStart !== -1) {
               const slice = buf.slice(objectStart, i + 1);
               this._handleObject(slice);
+              dispatchedAny = true;
               // Drop everything up to and including this object; reset scanner.
               buf = buf.slice(i + 1);
               i = -1; // for-loop ++i puts us at 0
@@ -231,6 +236,7 @@ export class HttpEventStream<TEvent> implements EventStreamLike<TEvent> {
         // ignore
       }
     }
+    return dispatchedAny;
   }
 
   private _handleObject(raw: string): void {

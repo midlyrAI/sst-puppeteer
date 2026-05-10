@@ -16,9 +16,9 @@ import { type SessionState } from '../state/session-state.js';
 import { type Command, type CommandStatus } from '../../common/contract/command.js';
 import { SessionStateMachine } from '../state/session-state-machine.js';
 import { CommandRegistry } from '../command/command-registry.js';
-import { type Pty, NodePtyAdapter } from '../../infra/pty/node-pty-adapter.js';
+import { type Pty, type PtyUnsubscribe } from '../../common/contract/pty.js';
+import { NodePtyAdapter } from '../../infra/pty/node-pty-adapter.js';
 import { stripAnsi } from '../../common/ansi/ansi.js';
-import { type PtyUnsubscribe } from '../../infra/pty/node-pty-adapter.js';
 import { type EventStreamLike, HttpEventStream } from '../../infra/stream/http-event-stream.js';
 import { PaneLogWatcher } from '../../infra/pane-log/pane-log-watcher.js';
 import { type CompleteEventPayload, type SstBusEvent } from '../../infra/stream/sst-bus-event.js';
@@ -435,7 +435,6 @@ export class SSTSession {
     this._commandRegistry.applyStatus(name, 'starting');
 
     await this._commandRegistry.waitForStatus(name, 'running', 60_000);
-    this._paneNavigator.noteStatusChange();
 
     return { status: 'running', durationMs: Date.now() - startedAt };
   }
@@ -467,7 +466,6 @@ export class SSTSession {
     await this._paneNavigator.sendKey(KEY.keyX);
 
     await this._commandRegistry.waitForStatus(name, 'stopped', 30_000);
-    this._paneNavigator.noteStatusChange();
 
     return { status: 'stopped' };
   }
@@ -476,13 +474,12 @@ export class SSTSession {
     this._assertConnected();
 
     const startedAt = Date.now();
-
-    if (this._commandRegistry.get(name) === undefined) {
+    const cmd = this._commandRegistry.get(name);
+    if (cmd === undefined) {
       throw new CommandNotFoundError(`No command named '${name}'`);
     }
 
-    const currentStatus = this._commandRegistry.get(name)!.status;
-    if (currentStatus === 'running' || currentStatus === 'starting') {
+    if (cmd.status === 'running' || cmd.status === 'starting') {
       await this.stopCommand(name);
     }
 
@@ -677,7 +674,6 @@ export class SSTSession {
     const from = cmd.status;
     if (from === 'running') return; // idempotent
     this._commandRegistry.applyStatus(name, 'running');
-    this._paneNavigator?.noteStatusChange();
     this._emit({
       type: 'command-status-change',
       timestamp: Date.now(),
@@ -693,7 +689,6 @@ export class SSTSession {
     const from = cmd.status;
     if (from === 'stopped') return;
     this._commandRegistry.applyStatus(name, 'stopped', { code: null, signal: null });
-    this._paneNavigator?.noteStatusChange();
     this._emit({
       type: 'command-status-change',
       timestamp: Date.now(),

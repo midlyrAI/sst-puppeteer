@@ -79,7 +79,6 @@ interface NavPrivateAccess {
     isSystem: boolean;
   }[];
   _findIndexByName(name: string): number;
-  _currentIndex: number;
 }
 
 function asPrivate(nav: PaneNavigator): NavPrivateAccess {
@@ -217,15 +216,13 @@ describe('PaneNavigator — navigateTo keystrokes', () => {
     const jPresses = adapter._writeCalls.filter((c) => c === KEY.keyJ);
     expect(kPresses).toHaveLength(6); // anchor: one k per pane
     expect(jPresses).toHaveLength(3); // walk down to index 3
-    expect(nav.currentIndex).toBe(3);
   });
 
-  it('Test 11: target index 0 sends only the anchor (no down-walk)', async () => {
+  it('Test 11: anchor-and-walk for target near the top', async () => {
     const reg = new CommandRegistry();
     reg.register(makeSpec('Svc1'));
     reg.applyStatus('Svc1', 'running');
     const { nav, adapter } = makeNavigator(reg, 0);
-    asPrivate(nav)._currentIndex = 2; // Svc1 is at 2 — but we still anchor first
     await nav.navigateTo('Svc1');
 
     const kPresses = adapter._writeCalls.filter((c) => c === KEY.keyK);
@@ -233,7 +230,6 @@ describe('PaneNavigator — navigateTo keystrokes', () => {
     // 3 panes total (SST, Functions, Svc1); target at index 2
     expect(kPresses).toHaveLength(3);
     expect(jPresses).toHaveLength(2);
-    expect(nav.currentIndex).toBe(2);
   });
 
   it('Test 12: navigation order is anchor-first, walk-second', async () => {
@@ -245,15 +241,6 @@ describe('PaneNavigator — navigateTo keystrokes', () => {
 
     // Should see: keyK keyK keyK keyJ keyJ
     expect(adapter._writeCalls).toEqual([KEY.keyK, KEY.keyK, KEY.keyK, KEY.keyJ, KEY.keyJ]);
-  });
-
-  it('Test 13: after navigateTo, currentIndex is updated', async () => {
-    const reg = new CommandRegistry();
-    reg.register(makeSpec('Alpha'));
-    reg.applyStatus('Alpha', 'running');
-    const { nav } = makeNavigator(reg, 0);
-    await nav.navigateTo('Alpha'); // index 2
-    expect(nav.currentIndex).toBe(2);
   });
 });
 
@@ -268,47 +255,15 @@ describe('PaneNavigator — re-derivation after status change', () => {
     const { nav, adapter } = makeNavigator(reg, 0);
 
     await nav.navigateTo('Alpha');
-    expect(nav.currentIndex).toBe(3);
     adapter._writeCalls.length = 0;
 
     reg.applyStatus('Beta', 'stopped');
-    nav.noteStatusChange();
     // New order: SST(0) Functions(1) Alpha(2) Beta(3)
 
     await nav.navigateTo('Alpha');
-    expect(nav.currentIndex).toBe(2);
     // Anchor: 4 panes → 4 keyK; walk: index 2 → 2 keyJ
     expect(adapter._writeCalls.filter((c) => c === KEY.keyK)).toHaveLength(4);
     expect(adapter._writeCalls.filter((c) => c === KEY.keyJ)).toHaveLength(2);
-  });
-
-  it('Test 14b: navigation is drift-proof — wrong _currentIndex still lands correctly', async () => {
-    const reg = new CommandRegistry();
-    reg.register(makeSpec('Svc1'));
-    reg.applyStatus('Svc1', 'running');
-    const { nav, adapter } = makeNavigator(reg, 0);
-
-    // Simulate cursor drift: our internal index says 99, but anchor-and-walk
-    // ignores it. Final position should still be the target.
-    asPrivate(nav)._currentIndex = 99;
-    await nav.navigateTo('Svc1'); // Svc1 is at 2
-
-    expect(nav.currentIndex).toBe(2);
-    expect(adapter._writeCalls.filter((c) => c === KEY.keyK)).toHaveLength(3);
-    expect(adapter._writeCalls.filter((c) => c === KEY.keyJ)).toHaveLength(2);
-  });
-});
-
-describe('PaneNavigator — resync', () => {
-  it('Test 15: resync() resets currentIndex to 0', async () => {
-    const reg = new CommandRegistry();
-    reg.register(makeSpec('MyService'));
-    reg.applyStatus('MyService', 'running');
-    const { nav } = makeNavigator(reg, 0);
-    await nav.navigateTo('MyService'); // moves to index 2
-    expect(nav.currentIndex).toBe(2);
-    nav.resync();
-    expect(nav.currentIndex).toBe(0);
   });
 });
 

@@ -1,4 +1,4 @@
-import { type Pty } from '../../infra/pty/node-pty-adapter.js';
+import { type Pty } from '../../common/contract/pty.js';
 import { type CommandRegistry } from '../command/command-registry.js';
 import { CommandNotFoundError } from '../../common/error/errors.js';
 import { KEY } from '../../common/keystroke/keystroke-encoder.js';
@@ -20,7 +20,6 @@ export class PaneNavigator {
   private readonly _adapter: Pty;
   private readonly _commandRegistry: CommandRegistry;
   private readonly _settleMs: number;
-  private _currentIndex: number = 0;
   private _hasTasks = false;
   private _hasTunnel = false;
 
@@ -120,8 +119,6 @@ export class PaneNavigator {
 
     for (let i = 0; i < order.length; i++) await this.sendKey(KEY.keyK);
     for (let i = 0; i < target; i++) await this.sendKey(KEY.keyJ);
-
-    this._currentIndex = target;
   }
 
   /**
@@ -131,28 +128,5 @@ export class PaneNavigator {
   async sendKey(byteSeq: string): Promise<void> {
     this._adapter.write(byteSeq);
     await new Promise<void>((r) => setTimeout(r, this._settleMs));
-  }
-
-  /**
-   * Called by SSTSession after every command status transition.
-   * Reserved for future smart-resync logic; currently a no-op because the next
-   * call to navigateTo() re-derives _localSortOrder() from the registry
-   * automatically.
-   */
-  noteStatusChange(): void {
-    // no-op — sort order is re-derived lazily on next navigateTo()
-  }
-
-  /**
-   * Reset tracked current index to 0. Use after Ctrl+L or any operation that
-   * resets multiplexer focus to the top pane.
-   */
-  resync(): void {
-    this._currentIndex = 0;
-  }
-
-  /** Current believed index (primarily for tests). */
-  get currentIndex(): number {
-    return this._currentIndex;
   }
 }

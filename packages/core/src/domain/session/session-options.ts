@@ -3,7 +3,7 @@ import { type SstBusEvent } from '../../infra/stream/sst-bus-event.js';
 import { type EventStreamLike } from '../../infra/stream/http-event-stream.js';
 import { type PaneLogWatcher } from '../../infra/pane-log/pane-log-watcher.js';
 import { type Logger } from '../../common/logger/logger.js';
-import { type Pty } from '../../infra/pty/node-pty-adapter.js';
+import { type Pty } from '../../common/contract/pty.js';
 
 export interface WaitOptions {
   readonly timeoutMs?: number;
