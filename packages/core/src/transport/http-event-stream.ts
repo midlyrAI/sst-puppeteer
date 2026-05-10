@@ -66,12 +66,10 @@ export class HttpEventStream<TEvent> implements EventStream<TEvent> {
       if (opts.signal.aborted) onAbort();
       else opts.signal.addEventListener('abort', onAbort);
     }
-    this._readLoop = this._runWithReconnect(opts.url, this._abort.signal).catch(
-      (err: unknown) => {
-        const e = err instanceof Error ? err : new Error(String(err));
-        this._dispatchError(e);
-      },
-    );
+    this._readLoop = this._runWithReconnect(opts.url, this._abort.signal).catch((err: unknown) => {
+      const e = err instanceof Error ? err : new Error(String(err));
+      this._dispatchError(e);
+    });
   }
 
   onEvent(handler: (event: TEvent) => void): () => void {

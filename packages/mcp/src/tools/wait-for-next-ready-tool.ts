@@ -16,7 +16,10 @@ export class WaitForNextReadyTool extends Tool<WaitForNextReadyInput, WaitForNex
     required: ['sessionId'],
   };
 
-  async execute(session: SSTSession, input: WaitForNextReadyInput): Promise<WaitForNextReadyOutput> {
+  async execute(
+    session: SSTSession,
+    input: WaitForNextReadyInput,
+  ): Promise<WaitForNextReadyOutput> {
     const result = await session.waitForNextReady({
       timeoutMs: input.timeoutMs,
       commandName: input.commandName,

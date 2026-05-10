@@ -100,9 +100,7 @@ export class SSTSession implements ISession {
       // File not present — no prior session to collide with.
     }
     if (existingUrl !== null && (await ServerFileWatcher.probeUrl(existingUrl, 2_000))) {
-      throw new Error(
-        `Session already running for stage '${stage ?? 'default'}' — stop it first`,
-      );
+      throw new Error(`Session already running for stage '${stage ?? 'default'}' — stop it first`);
     }
 
     this._started = true;
@@ -392,7 +390,9 @@ export class SSTSession implements ISession {
             } else if (to === 'error') {
               clearTimeout(timer);
               unsub();
-              reject(new UpdateFailedError(`Update failed during dev cycle — state became 'error'`));
+              reject(
+                new UpdateFailedError(`Update failed during dev cycle — state became 'error'`),
+              );
             }
           }
         });
@@ -561,9 +561,7 @@ export class SSTSession implements ISession {
         if (to === 'disconnected' && !settled) {
           settled = true;
           unsub();
-          reject(
-            this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0),
-          );
+          reject(this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0));
         }
       });
       promise.then(
@@ -591,7 +589,13 @@ export class SSTSession implements ISession {
   private _syncFromCompleteEvent(event: CompleteEventPayload): void {
     const devs = (event.Devs ?? {}) as Record<
       string,
-      { command?: string; directory?: string; autostart?: boolean; title?: string; environment?: Record<string, string> }
+      {
+        command?: string;
+        directory?: string;
+        autostart?: boolean;
+        title?: string;
+        environment?: Record<string, string>;
+      }
     >;
     const devEntries = Object.entries(devs);
     // Only resync when the event actually carries Dev information. CompleteEvents

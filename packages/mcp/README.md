@@ -8,11 +8,11 @@ Ships its own bin: **`sst-puppeteer-mcp`**. Configure your MCP client to launch 
 
 ## Tools
 
-| Tool                | Purpose                                         |
-| ------------------- | ----------------------------------------------- |
-| `start_session`     | Spawn `sst dev` in the target project directory |
-| `wait_for_ready`    | Block until initial deploy reaches ready        |
+| Tool                  | Purpose                                         |
+| --------------------- | ----------------------------------------------- |
+| `start_session`       | Spawn `sst dev` in the target project directory |
+| `wait_for_ready`      | Block until initial deploy reaches ready        |
 | `wait_for_next_ready` | Block until next deploy cycle completes         |
-| `invoke_function`   | Call a deployed Lambda with a payload           |
-| `read_logs`         | Read structured logs for a function             |
-| `stop_session`      | Gracefully shut down the session                |
+| `invoke_function`     | Call a deployed Lambda with a payload           |
+| `read_logs`           | Read structured logs for a function             |
+| `stop_session`        | Gracefully shut down the session                |

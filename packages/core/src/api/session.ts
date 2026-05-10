@@ -18,7 +18,4 @@ import { type ISessionLifecycle } from './session-lifecycle.js';
  * sub-interface instead.
  */
 export interface ISession
-  extends ISessionLifecycle,
-    ICommandLifecycle,
-    ICommandStateReader,
-    IObservable<SessionEvent> {}
+  extends ISessionLifecycle, ICommandLifecycle, ICommandStateReader, IObservable<SessionEvent> {}

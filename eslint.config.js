@@ -65,8 +65,7 @@ export default tseslint.config(
           patterns: [
             {
               group: ['../transport/*', '../orchestration/*'],
-              message:
-                'domain/ is pure logic — may not depend on transport/ or orchestration/.',
+              message: 'domain/ is pure logic — may not depend on transport/ or orchestration/.',
             },
           ],
         },

@@ -66,63 +66,55 @@ function tempDir(): string {
 }
 
 describe('SSTSession — disconnected state', () => {
-  it(
-    'transitions to disconnected on StreamConnectionError and rejects command methods',
-    async () => {
-      const projectDir = tempDir();
-      const adapter = new MockPtyAdapter();
-      const stream = new FakeEventStream<SstBusEvent>();
+  it('transitions to disconnected on StreamConnectionError and rejects command methods', async () => {
+    const projectDir = tempDir();
+    const adapter = new MockPtyAdapter();
+    const stream = new FakeEventStream<SstBusEvent>();
 
-      const session = new SSTSession({
-        adapter,
-        projectDir,
-        eventStreamFactory: () => stream,
-        commands: [
-          {
-            name: 'Service-A',
-            kind: 'service',
-            command: 'echo hello',
-            autostart: false,
-            killable: true,
-          },
-        ],
+    const session = new SSTSession({
+      adapter,
+      projectDir,
+      eventStreamFactory: () => stream,
+      commands: [
+        {
+          name: 'Service-A',
+          kind: 'service',
+          command: 'echo hello',
+          autostart: false,
+          killable: true,
+        },
+      ],
+    });
+
+    // Drive to ready in next tick
+    setImmediate(() => {
+      stream.emit({
+        type: 'project.StackCommandEvent',
+        event: { App: 'a', Stage: 's', Config: 'c', Command: 'deploy', Version: 'v' },
       });
-
-      // Drive to ready in next tick
-      setImmediate(() => {
-        stream.emit({
-          type: 'project.StackCommandEvent',
-          event: { App: 'a', Stage: 's', Config: 'c', Command: 'deploy', Version: 'v' },
-        });
-        stream.emit({
-          type: 'project.CompleteEvent',
-          event: { UpdateID: 'u', Errors: [], Finished: true, Old: false },
-        });
+      stream.emit({
+        type: 'project.CompleteEvent',
+        event: { UpdateID: 'u', Errors: [], Finished: true, Old: false },
       });
+    });
 
-      await session.start();
-      expect(session.state).toBe('ready');
+    await session.start();
+    expect(session.state).toBe('ready');
 
-      // Capture state-change event
-      const stateChanges: Array<{ from: string; to: string }> = [];
-      session.on('state-change', (ev) => stateChanges.push({ from: ev.from, to: ev.to }));
+    // Capture state-change event
+    const stateChanges: Array<{ from: string; to: string }> = [];
+    session.on('state-change', (ev) => stateChanges.push({ from: ev.from, to: ev.to }));
 
-      // Force a connection error
-      stream.emitError(new StreamConnectionError('boom', 'http://x/stream', 3));
+    // Force a connection error
+    stream.emitError(new StreamConnectionError('boom', 'http://x/stream', 3));
 
-      expect(session.state).toBe('disconnected');
-      expect(stateChanges).toContainEqual({ from: 'ready', to: 'disconnected' });
+    expect(session.state).toBe('disconnected');
+    expect(stateChanges).toContainEqual({ from: 'ready', to: 'disconnected' });
 
-      await expect(session.startCommand('Service-A')).rejects.toBeInstanceOf(
-        StreamConnectionError,
-      );
-      await expect(session.stopCommand('Service-A')).rejects.toBeInstanceOf(StreamConnectionError);
-      await expect(session.restartCommand('Service-A')).rejects.toBeInstanceOf(
-        StreamConnectionError,
-      );
+    await expect(session.startCommand('Service-A')).rejects.toBeInstanceOf(StreamConnectionError);
+    await expect(session.stopCommand('Service-A')).rejects.toBeInstanceOf(StreamConnectionError);
+    await expect(session.restartCommand('Service-A')).rejects.toBeInstanceOf(StreamConnectionError);
 
-      await expect(session.stop()).resolves.toBeUndefined();
-    },
-    10_000,
-  );
+    await expect(session.stop()).resolves.toBeUndefined();
+  }, 10_000);
 });

@@ -44,7 +44,11 @@ export interface BuildFailedEvent {
 
 export interface CompleteEventPayload {
   readonly UpdateID: string;
-  readonly Errors: readonly { readonly message: string; readonly urn: string; readonly help: readonly string[] }[];
+  readonly Errors: readonly {
+    readonly message: string;
+    readonly urn: string;
+    readonly help: readonly string[];
+  }[];
   readonly Finished: boolean;
   readonly Old: boolean;
   readonly Hints?: Record<string, string>;
