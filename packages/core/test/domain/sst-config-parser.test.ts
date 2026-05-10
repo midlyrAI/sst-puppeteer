@@ -5,7 +5,6 @@ import { join } from 'node:path';
 import { parseSstConfig } from '../../src/domain/sst-config-parser.js';
 import { ConfigNotFoundError } from '../../src/errors.js';
 import { type Logger } from '../../src/transport/logger.js';
-import { type CommandSpec } from '../../src/domain/command.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
