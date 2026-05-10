@@ -13,4 +13,7 @@ coverage/
 
 md/
 docs/
-scripts/
+
+# Top-level smoke/demo scripts only — package-internal scripts (e.g. postinstall
+# hooks under packages/*/scripts/) are part of the published package.
+/scripts/
