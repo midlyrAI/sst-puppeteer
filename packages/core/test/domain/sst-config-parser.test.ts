@@ -248,5 +248,4 @@ new sst.x.DevCommand("Frontend-Web", { dev: { command: "node web.js" } });
     expect(byName['Service-Api']).toBe('service');
     expect(byName['Frontend-Web']).toBe('service');
   });
-
 });
