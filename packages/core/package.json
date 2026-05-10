@@ -1,7 +1,7 @@
 {
   "name": "@sst-puppeteer/core",
   "version": "0.0.0",
-  "description": "Runtime-agnostic domain core for sst-puppeteer — SSTSession, event fusion, state machines.",
+  "description": "Core for sst-puppeteer — SSTSession, /stream subscription, pane navigation, default node-pty adapter.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,12 +13,17 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "scripts"
   ],
   "scripts": {
     "build": "tsc",
     "lint": "eslint src test",
     "lint:fix": "eslint src test --fix",
+    "postinstall": "node scripts/fix-spawn-helper.mjs",
     "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0"
   }
 }

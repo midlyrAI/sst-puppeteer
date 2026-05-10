@@ -7,7 +7,7 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "resolveJsonModule": true
   },
-  "references": [{ "path": "../core" }, { "path": "../pty-node" }],
+  "references": [{ "path": "../core" }],
   "include": ["src/**/*", "package.json"],
   "exclude": ["test", "dist", "node_modules"]
 }

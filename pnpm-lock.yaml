@@ -8,9 +8,6 @@ importers:
 
   .:
     devDependencies:
-      '@sst-puppeteer/pty-node':
-        specifier: workspace:^
-        version: link:packages/pty-node
       '@types/node':
         specifier: ^22.7.5
         version: 22.19.17
@@ -41,11 +38,12 @@ importers:
       '@sst-puppeteer/core':
         specifier: workspace:*
         version: link:../core
-      '@sst-puppeteer/pty-node':
-        specifier: workspace:*
-        version: link:../pty-node
 
-  packages/core: {}
+  packages/core:
+    dependencies:
+      node-pty:
+        specifier: ^1.0.0
+        version: 1.1.0
 
   packages/mcp:
     dependencies:
@@ -55,24 +53,6 @@ importers:
       '@sst-puppeteer/core':
         specifier: workspace:*
         version: link:../core
-      '@sst-puppeteer/pty-node':
-        specifier: workspace:*
-        version: link:../pty-node
-
-  packages/pty-bun:
-    dependencies:
-      '@sst-puppeteer/core':
-        specifier: workspace:*
-        version: link:../core
-
-  packages/pty-node:
-    dependencies:
-      '@sst-puppeteer/core':
-        specifier: workspace:*
-        version: link:../core
-      node-pty:
-        specifier: ^1.0
-        version: 1.1.0
 
 packages:
 

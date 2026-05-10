@@ -1,19 +1,17 @@
 import { type SessionOptions } from '../api/session-options.js';
+import { NodePtyAdapter } from '../transport/node-pty-adapter.js';
 import { SSTSession } from './session.js';
 
 /**
- * Constructs an `SSTSession`. The session itself wires default factories at
- * `start()` time when they are not supplied — so this builder is a tiny
- * convenience: it gives the public construction surface a stable name and
- * lets callers swap in mocks for tests via {@link SessionOptions}.
+ * Constructs an `SSTSession` with sensible defaults. Customers don't need
+ * to provide a `PtyAdapter` — `SessionBuilder` will default to
+ * `NodePtyAdapter` (which is the only impl we ship).
  *
  * @example
  * ```ts
  * import { SessionBuilder } from '@sst-puppeteer/core';
- * import { NodePtyAdapter } from '@sst-puppeteer/pty-node';
  *
  * const session = new SessionBuilder({
- *   adapter: new NodePtyAdapter(),
  *   projectDir: process.cwd(),
  *   stage: 'dev',
  * }).build();
@@ -24,6 +22,7 @@ export class SessionBuilder {
   constructor(private readonly options: SessionOptions) {}
 
   build(): SSTSession {
-    return new SSTSession(this.options);
+    const adapter = this.options.adapter ?? new NodePtyAdapter();
+    return new SSTSession({ ...this.options, adapter });
   }
 }

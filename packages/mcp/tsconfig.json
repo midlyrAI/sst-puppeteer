@@ -6,7 +6,7 @@
     "composite": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "references": [{ "path": "../core" }, { "path": "../pty-node" }],
+  "references": [{ "path": "../core" }],
   "include": ["src/**/*"],
   "exclude": ["test", "dist", "node_modules"]
 }

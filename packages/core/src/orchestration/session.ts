@@ -19,6 +19,8 @@ import { type SessionState } from '../domain/session-state.js';
 import { type Command, type CommandStatus } from '../domain/command.js';
 import { SessionStateMachine } from '../domain/session-state-machine.js';
 import { CommandRegistry } from '../domain/command-registry.js';
+import { type PtyAdapter } from '../api/pty-adapter.js';
+import { NodePtyAdapter } from '../transport/node-pty-adapter.js';
 import { PtySource } from '../transport/pty-source.js';
 import { type EventStream } from '../transport/event-stream.js';
 import { HttpEventStream } from '../transport/http-event-stream.js';
@@ -54,6 +56,7 @@ export class SSTSession implements ISession {
   private readonly _eventHandlers: Map<string, Set<AnyEventHandler>> = new Map();
 
   private _started = false;
+  private _adapter: PtyAdapter | null = null;
 
   // Created in start()
   private _ptySource: PtySource | null = null;
@@ -88,7 +91,9 @@ export class SSTSession implements ISession {
       throw new Error('SSTSession.start() called on an already-started session');
     }
 
-    const { adapter, projectDir, stage } = this.options;
+    const { projectDir, stage } = this.options;
+    const adapter = this.options.adapter ?? new NodePtyAdapter();
+    this._adapter = adapter;
 
     // Pre-flight collision check: if .sst/<stage>.server exists and is alive, bail early.
     const serverFile = path.join(projectDir, '.sst', `${stage ?? 'default'}.server`);
@@ -261,7 +266,7 @@ export class SSTSession implements ISession {
     await this._ptySource?.stop();
 
     // Send SIGINT to parent SST
-    this.options.adapter.kill('SIGINT');
+    this._adapter?.kill('SIGINT');
 
     // Wait up to 5s for exit
     if (this._parentExitPromise !== null) {
@@ -275,7 +280,7 @@ export class SSTSession implements ISession {
       ]);
 
       if (!didExit) {
-        this.options.adapter.kill('SIGKILL');
+        this._adapter?.kill('SIGKILL');
         await Promise.race([
           this._parentExitPromise,
           new Promise<void>((resolve) => setTimeout(resolve, 3000)),
@@ -285,6 +290,7 @@ export class SSTSession implements ISession {
 
     // Clean up
     this._started = false;
+    this._adapter = null;
     this._ptySource = null;
     this._eventStream = null;
     this._paneLogWatcher = null;

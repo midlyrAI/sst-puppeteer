@@ -50,7 +50,6 @@ const buildServer = (overrideSessionFactory?: SessionFactory): McpServer => {
   return createMcpServer({
     transport: new MockTransport(),
     sessionFactory,
-    defaultProjectDir: '/tmp/test-project',
   });
 };
 

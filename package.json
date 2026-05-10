@@ -22,7 +22,6 @@
     "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
-    "@sst-puppeteer/pty-node": "workspace:^",
     "@types/node": "^22.7.5",
     "eslint": "^9.13.0",
     "expect-type": "^1.1.0",

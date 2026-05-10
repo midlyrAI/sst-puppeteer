@@ -1,13 +1,20 @@
 import * as pty from 'node-pty';
 import {
-  NotImplementedError,
   type PtyAdapter,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
   type PtyUnsubscribe,
-} from '@sst-puppeteer/core';
+} from '../api/pty-adapter.js';
 
+/**
+ * Default {@link PtyAdapter} backed by `node-pty`.
+ *
+ * `sst dev` is a tcell-based TUI that requires a real terminal — plain
+ * `child_process.spawn` won't render or accept keystrokes. `node-pty`
+ * provides the missing pseudo-terminal layer (`forkpty(3)` on Unix,
+ * ConPTY on Windows).
+ */
 export class NodePtyAdapter implements PtyAdapter {
   private _pty: pty.IPty | null = null;
 
@@ -29,24 +36,18 @@ export class NodePtyAdapter implements PtyAdapter {
   }
 
   write(data: string): void {
-    if (this._pty === null) {
-      throw new NotImplementedError('NodePtyAdapter.write');
-    }
+    if (this._pty === null) throw new Error('NodePtyAdapter: not spawned');
     this._pty.write(data);
   }
 
   onData(handler: PtyDataHandler): PtyUnsubscribe {
-    if (this._pty === null) {
-      throw new NotImplementedError('NodePtyAdapter.onData');
-    }
+    if (this._pty === null) throw new Error('NodePtyAdapter: not spawned');
     const disposable = this._pty.onData(handler);
     return () => disposable.dispose();
   }
 
   onExit(handler: PtyExitHandler): PtyUnsubscribe {
-    if (this._pty === null) {
-      throw new NotImplementedError('NodePtyAdapter.onExit');
-    }
+    if (this._pty === null) throw new Error('NodePtyAdapter: not spawned');
     const disposable = this._pty.onExit(({ exitCode, signal }) => {
       const sig: number | null = typeof signal === 'number' ? signal : null;
       handler(exitCode ?? null, sig);

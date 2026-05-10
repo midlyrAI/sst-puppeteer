@@ -1,7 +1,7 @@
 /**
  * Runtime-agnostic PTY adapter contract.
  *
- * Implementations live in `@sst-puppeteer/pty-node` and `@sst-puppeteer/pty-bun`.
+ * Default implementation: `NodePtyAdapter` (in core/transport/).
  * Core code never imports `node-pty` or `bun:*` directly — it accepts a
  * `PtyAdapter` via constructor injection (see `SessionOptions.adapter`).
  */

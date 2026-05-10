@@ -6,7 +6,8 @@ import { type Logger } from './logger.js';
 import { type PtyAdapter } from './pty-adapter.js';
 
 export interface SessionOptions {
-  readonly adapter: PtyAdapter;
+  /** PTY adapter. Defaults to a fresh `NodePtyAdapter` when constructed via `SessionBuilder`. */
+  readonly adapter?: PtyAdapter;
   readonly projectDir: string;
   readonly logger?: Logger;
   readonly awsProfile?: string;

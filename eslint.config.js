@@ -19,8 +19,15 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  // node-pty is allowed only in core/transport/. Domain, api, and orchestration
+  // stay free of native-runtime imports so they remain unit-testable without
+  // pulling the PTY native module.
   {
-    files: ['packages/core/**/*.ts'],
+    files: [
+      'packages/core/src/api/**/*.ts',
+      'packages/core/src/domain/**/*.ts',
+      'packages/core/src/orchestration/**/*.ts',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -28,8 +35,7 @@ export default tseslint.config(
           patterns: [
             {
               group: ['node-pty', 'node-pty/*', 'child_process', 'bun', 'bun:*'],
-              message:
-                'core must remain runtime-agnostic. Move runtime-specific code to packages/pty-node or packages/pty-bun.',
+              message: 'native PTY imports are restricted to core/transport/.',
             },
           ],
         },

@@ -18,7 +18,6 @@ export interface McpServerOptions {
   readonly registry?: ToolRegistry;
   readonly transport: Transport;
   readonly sessionFactory: SessionFactory;
-  readonly defaultProjectDir?: string;
 }
 
 export class McpServer {
@@ -49,10 +48,21 @@ export class McpServer {
   ): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
     try {
       if (name === 'start_session') {
-        const projectDir =
-          (input['projectDir'] as string | undefined) ??
-          this._options.defaultProjectDir ??
-          process.cwd();
+        const projectDir = input['projectDir'] as string | undefined;
+        if (!projectDir) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  error:
+                    "start_session requires 'projectDir' input (absolute path to your SST project).",
+                }),
+              },
+            ],
+            isError: true,
+          };
+        }
         const awsProfile = input['awsProfile'] as string | undefined;
         const stage = input['stage'] as string | undefined;
         const commands = input['commands'] as readonly CommandSpec[] | undefined;

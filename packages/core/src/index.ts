@@ -19,6 +19,7 @@ export { Logger, NoopLogger } from './api/logger.js';
 
 // Transport implementations.
 export { ConsoleLogger } from './transport/logger.js';
+export { NodePtyAdapter } from './transport/node-pty-adapter.js';
 export { PtySource, type RawPtyEvent } from './transport/pty-source.js';
 export {
   ServerFileWatcher,
