@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@sst-puppeteer/core": "workspace:*"
+    "@sst-puppeteer/core": "workspace:*",
+    "zod": "^4.0.0"
   },
   "devDependencies": {}
 }

@@ -1,6 +1,10 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, type ToolInputSchema } from './tool.js';
-import { type ListSessionsInput, type ListSessionsOutput } from '../types/tools.js';
+import { Tool, zodToToolInputSchema } from './tool.js';
+import {
+  ListSessionsInputSchema,
+  type ListSessionsInput,
+  type ListSessionsOutput,
+} from '../types/tools.js';
 
 /**
  * Schema-only registration. `list_sessions` is dispatched directly by
@@ -11,10 +15,7 @@ export class ListSessionsTool extends Tool<ListSessionsInput, ListSessionsOutput
   readonly name = 'list_sessions';
   readonly description =
     'List all sessions currently tracked by this MCP server (in-memory only — does not survive restart).';
-  readonly inputSchema: ToolInputSchema = {
-    type: 'object',
-    properties: {},
-  };
+  readonly inputSchema = zodToToolInputSchema(ListSessionsInputSchema);
 
   async execute(_session: SSTSession, _input: ListSessionsInput): Promise<ListSessionsOutput> {
     throw new Error('list_sessions is dispatched by McpServer; execute() must not be reached');

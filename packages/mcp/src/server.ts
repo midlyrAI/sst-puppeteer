@@ -1,10 +1,14 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { type SSTSession, type CommandSpec, runSst } from '@sst-puppeteer/core';
+import { type SSTSession, runSst } from '@sst-puppeteer/core';
 import type { ToolRegistry } from './tools/registry.js';
 import { defaultRegistry } from './tools/index.js';
 import { type Transport, type StdioTransport } from './transport.js';
-import { type StartSessionInput } from './types/tools.js';
+import {
+  RunSstInputSchema,
+  StartSessionInputSchema,
+  type StartSessionInput,
+} from './types/tools.js';
 
 // MCP safety hints surfaced to the host's model so it can prefer safer tools.
 //   readOnlyHint    — no mutations to local state or external world
@@ -66,6 +70,21 @@ export class McpServer {
     return this._sessions.get(sessionId);
   }
 
+  private _validationError(
+    toolName: string,
+    detail: string,
+  ): { content: Array<{ type: 'text'; text: string }>; isError: true } {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error: `${toolName}: invalid input — ${detail}` }),
+        },
+      ],
+      isError: true,
+    };
+  }
+
   /**
    * Handle a tool call request — exposed as a method so tests can call it directly.
    */
@@ -75,37 +94,16 @@ export class McpServer {
   ): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
     try {
       if (name === 'start_session') {
-        const projectDir = input['projectDir'] as string | undefined;
-        if (!projectDir) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  error:
-                    "start_session requires 'projectDir' input (absolute path to your SST project).",
-                }),
-              },
-            ],
-            isError: true,
-          };
+        const parsed = StartSessionInputSchema.safeParse(input);
+        if (!parsed.success) {
+          return this._validationError('start_session', parsed.error.message);
         }
-        const session = await this._options.sessionFactory({
-          projectDir,
-          awsProfile: input['awsProfile'] as string | undefined,
-          awsRegion: input['awsRegion'] as string | undefined,
-          stage: input['stage'] as string | undefined,
-          commands: input['commands'] as readonly CommandSpec[] | undefined,
-          sstCommand: input['sstCommand'] as string | undefined,
-          sstCommandArgs: input['sstCommandArgs'] as readonly string[] | undefined,
-          extraDevArgs: input['extraDevArgs'] as readonly string[] | undefined,
-          env: input['env'] as Readonly<Record<string, string>> | undefined,
-        });
+        const session = await this._options.sessionFactory(parsed.data);
         await session.start();
         this._sessions.set(session.id, session);
         this._sessionMeta.set(session.id, {
-          projectDir,
-          stage: input['stage'] as string | undefined,
+          projectDir: parsed.data.projectDir,
+          stage: parsed.data.stage,
           startedAt: Date.now(),
         });
         return {
@@ -114,29 +112,11 @@ export class McpServer {
       }
 
       if (name === 'run_sst') {
-        const projectDir = input['projectDir'] as string | undefined;
-        const args = input['args'] as readonly string[] | undefined;
-        if (!projectDir || !Array.isArray(args)) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  error: "run_sst requires 'projectDir' (string) and 'args' (string[]) inputs.",
-                }),
-              },
-            ],
-            isError: true,
-          };
+        const parsed = RunSstInputSchema.safeParse(input);
+        if (!parsed.success) {
+          return this._validationError('run_sst', parsed.error.message);
         }
-        const result = await runSst({
-          projectDir,
-          args,
-          stage: input['stage'] as string | undefined,
-          env: input['env'] as Readonly<Record<string, string>> | undefined,
-          timeoutMs: input['timeoutMs'] as number | undefined,
-          sstCommand: input['sstCommand'] as string | undefined,
-        });
+        const result = await runSst(parsed.data);
         return {
           content: [
             {

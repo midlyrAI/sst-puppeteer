@@ -1,6 +1,10 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, type ToolInputSchema } from './tool.js';
-import { type StartSessionInput, type StartSessionOutput } from '../types/tools.js';
+import { Tool, zodToToolInputSchema } from './tool.js';
+import {
+  StartSessionInputSchema,
+  type StartSessionInput,
+  type StartSessionOutput,
+} from '../types/tools.js';
 
 /**
  * Schema-only registration. `start_session` is dispatched directly by
@@ -10,21 +14,7 @@ import { type StartSessionInput, type StartSessionOutput } from '../types/tools.
 export class StartSessionTool extends Tool<StartSessionInput, StartSessionOutput> {
   readonly name = 'start_session';
   readonly description = 'Spawn `sst dev` in the target project directory and return a session id.';
-  readonly inputSchema: ToolInputSchema = {
-    type: 'object',
-    properties: {
-      projectDir: { type: 'string' },
-      awsProfile: { type: 'string' },
-      awsRegion: { type: 'string' },
-      stage: { type: 'string' },
-      commands: { type: 'array', items: { type: 'object' } },
-      sstCommand: { type: 'string' },
-      sstCommandArgs: { type: 'array', items: { type: 'string' } },
-      extraDevArgs: { type: 'array', items: { type: 'string' } },
-      env: { type: 'object', additionalProperties: { type: 'string' } },
-    },
-    required: ['projectDir'],
-  };
+  readonly inputSchema = zodToToolInputSchema(StartSessionInputSchema);
 
   async execute(_session: SSTSession, _input: StartSessionInput): Promise<StartSessionOutput> {
     throw new Error('start_session is dispatched by McpServer; execute() must not be reached');
