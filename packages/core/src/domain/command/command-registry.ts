@@ -15,8 +15,8 @@ export type CommandStatusChangeHandler = (
 
 interface RegistryWaiter {
   name: string;
-  target: CommandStatus;
-  resolve: () => void;
+  targets: ReadonlySet<CommandStatus>;
+  resolve: (status: CommandStatus) => void;
   reject: (reason: unknown) => void;
   timeoutId: ReturnType<typeof setTimeout> | undefined;
 }
@@ -88,9 +88,9 @@ export class CommandRegistry {
 
     const remaining: RegistryWaiter[] = [];
     for (const waiter of this._waiters) {
-      if (waiter.name === name && waiter.target === status) {
+      if (waiter.name === name && waiter.targets.has(status)) {
         if (waiter.timeoutId !== undefined) clearTimeout(waiter.timeoutId);
-        waiter.resolve();
+        waiter.resolve(status);
       } else {
         remaining.push(waiter);
       }
@@ -107,20 +107,35 @@ export class CommandRegistry {
   }
 
   waitForStatus(name: string, target: CommandStatus, timeoutMs?: number): Promise<void> {
+    return this.waitForAnyStatus(name, [target], timeoutMs).then(() => undefined);
+  }
+
+  /**
+   * Resolves with the first of `targets` that the command reaches. Use for
+   * run-to-completion processes that may transition `starting → stopped`
+   * without ever observing `running`: pass `[RUNNING, STOPPED, ERRORED]` and
+   * branch on the resolved value.
+   */
+  waitForAnyStatus<T extends CommandStatus>(
+    name: string,
+    targets: readonly T[],
+    timeoutMs?: number,
+  ): Promise<T> {
     const existing = this._commands.get(name);
     if (existing === undefined) {
       throw new CommandNotFoundError(`Command "${name}" is not registered.`);
     }
 
-    if (existing.status === target) {
-      return Promise.resolve();
+    const targetSet: ReadonlySet<T> = new Set(targets);
+    if ((targetSet as ReadonlySet<CommandStatus>).has(existing.status)) {
+      return Promise.resolve(existing.status as T);
     }
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<T>((resolve, reject) => {
       const waiter: RegistryWaiter = {
         name,
-        target,
-        resolve,
+        targets: targetSet as ReadonlySet<CommandStatus>,
+        resolve: resolve as (s: CommandStatus) => void,
         reject,
         timeoutId: undefined,
       };
@@ -129,9 +144,10 @@ export class CommandRegistry {
         waiter.timeoutId = setTimeout(() => {
           this._waiters = this._waiters.filter((w) => w !== waiter);
           const current = this._commands.get(name)?.status ?? CommandStatus.IDLE;
+          const targetList = [...targetSet].map((s) => `"${s}"`).join(' | ');
           reject(
             new Error(
-              `Timed out waiting for command "${name}" to reach status "${target}" (current: "${current}")`,
+              `Timed out waiting for command "${name}" to reach status ${targetList} (current: "${current}")`,
             ),
           );
         }, timeoutMs);
