@@ -1,55 +1,38 @@
 import { describe, expect, it } from 'vitest';
-import {
-  NotImplementedError,
-  type PtyAdapter,
-  type PtyDataHandler,
-  type PtyExitHandler,
-  type PtySpawnOptions,
-  type PtyUnsubscribe,
-  SSTSession,
-} from '@sst-puppeteer/core';
-import { McpServer, StdioTransport, createMcpServer } from '../src/index.js';
+import { McpServer, Transport, createMcpServer } from '../src/index.js';
+import { type SessionFactory } from '../src/server.js';
 
-class StubPtyAdapter implements PtyAdapter {
-  readonly pid: number | null = null;
-  async spawn(_o: PtySpawnOptions): Promise<void> {
-    throw new NotImplementedError('stub');
-  }
-  write(): void {
-    throw new NotImplementedError('stub');
-  }
-  onData(_h: PtyDataHandler): PtyUnsubscribe {
-    throw new NotImplementedError('stub');
-  }
-  onExit(_h: PtyExitHandler): PtyUnsubscribe {
-    throw new NotImplementedError('stub');
-  }
-  resize(): void {
-    throw new NotImplementedError('stub');
-  }
-  kill(): void {
-    throw new NotImplementedError('stub');
-  }
+class MockTransport extends Transport {
+  override async start(): Promise<void> {}
+  override async stop(): Promise<void> {}
 }
+
+const mockSessionFactory: SessionFactory = async () => {
+  throw new Error('sessionFactory should not be called in smoke tests');
+};
 
 describe('McpServer smoke', () => {
   const buildServer = (): McpServer =>
     createMcpServer({
-      session: new SSTSession({ adapter: new StubPtyAdapter(), projectDir: '/tmp/x' }),
-      transport: new StdioTransport(),
+      transport: new MockTransport(),
+      sessionFactory: mockSessionFactory,
     });
 
-  it('createMcpServer returns an McpServer instance with a session, transport, and 6-tool registry', () => {
+  it('createMcpServer returns an McpServer instance with a transport and 10-tool registry', () => {
     const server = buildServer();
     expect(server).toBeInstanceOf(McpServer);
-    expect(server.session).toBeInstanceOf(SSTSession);
-    expect(server.transport).toBeInstanceOf(StdioTransport);
-    expect(server.registry.size()).toBe(6);
+    expect(server.transport).toBeInstanceOf(MockTransport);
+    expect(server.registry.size()).toBe(12);
   });
 
-  it('start() and stop() both reject with NotImplementedError', async () => {
+  it('start() and stop() are functions on the instance', () => {
     const server = buildServer();
-    await expect(server.start()).rejects.toBeInstanceOf(NotImplementedError);
-    await expect(server.stop()).rejects.toBeInstanceOf(NotImplementedError);
+    expect(typeof server.start).toBe('function');
+    expect(typeof server.stop).toBe('function');
+  });
+
+  it('stop() before start() is a no-op (does not throw)', async () => {
+    const server = buildServer();
+    await expect(server.stop()).resolves.toBeUndefined();
   });
 });

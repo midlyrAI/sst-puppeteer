@@ -1,7 +1,12 @@
-import { NotImplementedError, type SSTSession } from '@sst-puppeteer/core';
+import { type SSTSession } from '@sst-puppeteer/core';
 import { Tool, type ToolInputSchema } from './tool.js';
 import { type StartSessionInput, type StartSessionOutput } from '../types/tools.js';
 
+/**
+ * Schema-only registration. `start_session` is dispatched directly by
+ * `McpServer._handleToolCall` because it creates the session (rather than
+ * acting on an existing one), so `execute` is unreachable in production.
+ */
 export class StartSessionTool extends Tool<StartSessionInput, StartSessionOutput> {
   readonly name = 'start_session';
   readonly description = 'Spawn `sst dev` in the target project directory and return a session id.';
@@ -10,11 +15,18 @@ export class StartSessionTool extends Tool<StartSessionInput, StartSessionOutput
     properties: {
       projectDir: { type: 'string' },
       awsProfile: { type: 'string' },
+      awsRegion: { type: 'string' },
+      stage: { type: 'string' },
+      commands: { type: 'array', items: { type: 'object' } },
+      sstCommand: { type: 'string' },
+      sstCommandArgs: { type: 'array', items: { type: 'string' } },
+      extraDevArgs: { type: 'array', items: { type: 'string' } },
+      env: { type: 'object', additionalProperties: { type: 'string' } },
     },
     required: ['projectDir'],
   };
 
   async execute(_session: SSTSession, _input: StartSessionInput): Promise<StartSessionOutput> {
-    throw new NotImplementedError('StartSessionTool.execute');
+    throw new Error('start_session is dispatched by McpServer; execute() must not be reached');
   }
 }

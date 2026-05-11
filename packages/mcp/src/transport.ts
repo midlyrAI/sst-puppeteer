@@ -1,4 +1,4 @@
-import { NotImplementedError } from '@sst-puppeteer/core';
+import { type StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 export abstract class Transport {
   abstract start(): Promise<void>;
@@ -6,26 +6,33 @@ export abstract class Transport {
 }
 
 export class StdioTransport extends Transport {
-  override async start(): Promise<void> {
-    throw new NotImplementedError('StdioTransport.start');
-  }
+  private _sdk: StdioServerTransport | null = null;
+  private _started: boolean = false;
 
-  override async stop(): Promise<void> {
-    throw new NotImplementedError('StdioTransport.stop');
-  }
-}
-
-export class HttpTransport extends Transport {
-  constructor(private readonly _port: number) {
-    super();
+  getSdkTransport(): StdioServerTransport {
+    if (this._sdk === null) {
+      throw new Error('StdioTransport has not been started — call start() first.');
+    }
+    return this._sdk;
   }
 
   override async start(): Promise<void> {
-    void this._port;
-    throw new NotImplementedError('HttpTransport.start');
+    if (this._started) {
+      throw new Error('StdioTransport.start() has already been called.');
+    }
+    this._started = true;
+    // Dynamically import to keep the module loadable in non-Node environments at type-check time
+    const { StdioServerTransport: SdkStdioServerTransport } =
+      await import('@modelcontextprotocol/sdk/server/stdio.js');
+    this._sdk = new SdkStdioServerTransport();
   }
 
   override async stop(): Promise<void> {
-    throw new NotImplementedError('HttpTransport.stop');
+    if (!this._started) {
+      return;
+    }
+    await this._sdk?.close();
+    this._sdk = null;
+    this._started = false;
   }
 }

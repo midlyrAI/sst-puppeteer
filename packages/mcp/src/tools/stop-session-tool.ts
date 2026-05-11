@@ -1,4 +1,4 @@
-import { NotImplementedError, type SSTSession } from '@sst-puppeteer/core';
+import { type SSTSession } from '@sst-puppeteer/core';
 import { Tool, type ToolInputSchema } from './tool.js';
 import { type StopSessionInput, type StopSessionOutput } from '../types/tools.js';
 
@@ -13,7 +13,8 @@ export class StopSessionTool extends Tool<StopSessionInput, StopSessionOutput> {
     required: ['sessionId'],
   };
 
-  async execute(_session: SSTSession, _input: StopSessionInput): Promise<StopSessionOutput> {
-    throw new NotImplementedError('StopSessionTool.execute');
+  async execute(session: SSTSession, _input: StopSessionInput): Promise<StopSessionOutput> {
+    await session.stop();
+    return { stopped: true };
   }
 }

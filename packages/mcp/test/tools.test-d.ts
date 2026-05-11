@@ -1,12 +1,6 @@
 import { expectTypeOf } from 'expect-type';
 import { test } from 'vitest';
 import {
-  type InvokeFunctionInput,
-  type InvokeFunctionOutput,
-  type InvokeFunctionTool,
-  type ReadLogsInput,
-  type ReadLogsOutput,
-  type ReadLogsTool,
   type StartSessionInput,
   type StartSessionOutput,
   type StartSessionTool,
@@ -17,20 +11,16 @@ import {
   type WaitForReadyInput,
   type WaitForReadyOutput,
   type WaitForReadyTool,
-  type WaitForRedeployInput,
-  type WaitForRedeployOutput,
-  type WaitForRedeployTool,
+  type WaitForNextReadyInput,
+  type WaitForNextReadyOutput,
+  type WaitForNextReadyTool,
 } from '../src/index.js';
 
 test('every concrete Tool subclass matches its declared input/output types', () => {
   expectTypeOf<StartSessionTool>().toMatchTypeOf<Tool<StartSessionInput, StartSessionOutput>>();
   expectTypeOf<WaitForReadyTool>().toMatchTypeOf<Tool<WaitForReadyInput, WaitForReadyOutput>>();
-  expectTypeOf<WaitForRedeployTool>().toMatchTypeOf<
-    Tool<WaitForRedeployInput, WaitForRedeployOutput>
+  expectTypeOf<WaitForNextReadyTool>().toMatchTypeOf<
+    Tool<WaitForNextReadyInput, WaitForNextReadyOutput>
   >();
-  expectTypeOf<InvokeFunctionTool>().toMatchTypeOf<
-    Tool<InvokeFunctionInput, InvokeFunctionOutput>
-  >();
-  expectTypeOf<ReadLogsTool>().toMatchTypeOf<Tool<ReadLogsInput, ReadLogsOutput>>();
   expectTypeOf<StopSessionTool>().toMatchTypeOf<Tool<StopSessionInput, StopSessionOutput>>();
 });

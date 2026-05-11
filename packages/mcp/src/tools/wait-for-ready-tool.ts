@@ -1,4 +1,4 @@
-import { NotImplementedError, type SSTSession } from '@sst-puppeteer/core';
+import { type SSTSession } from '@sst-puppeteer/core';
 import { Tool, type ToolInputSchema } from './tool.js';
 import { type WaitForReadyInput, type WaitForReadyOutput } from '../types/tools.js';
 
@@ -14,7 +14,8 @@ export class WaitForReadyTool extends Tool<WaitForReadyInput, WaitForReadyOutput
     required: ['sessionId'],
   };
 
-  async execute(_session: SSTSession, _input: WaitForReadyInput): Promise<WaitForReadyOutput> {
-    throw new NotImplementedError('WaitForReadyTool.execute');
+  async execute(session: SSTSession, input: WaitForReadyInput): Promise<WaitForReadyOutput> {
+    const result = await session.waitForReady({ timeoutMs: input.timeoutMs });
+    return { state: result.state, durationMs: result.durationMs };
   }
 }

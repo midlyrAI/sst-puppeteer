@@ -21,14 +21,32 @@ const collectTsFiles = (dir: string): string[] => {
   return out;
 };
 
+const BANNED_AWS = /from\s+['"]@aws-sdk\/[^'"]+['"]/;
+const BANNED_AWS_DYNAMIC = /import\(\s*['"]@aws-sdk\/[^'"]+['"]/;
+
 describe('core isolation', () => {
-  it('contains zero imports of node-pty / child_process / bun', () => {
-    const files = collectTsFiles(SRC_DIR);
+  it('node-pty / child_process / bun are confined to infra/pty/', () => {
+    const files = collectTsFiles(SRC_DIR).filter(
+      (f) => !f.startsWith(join(SRC_DIR, 'infra', 'pty')),
+    );
     expect(files.length).toBeGreaterThan(0);
     const offenders: string[] = [];
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
       if (BANNED.test(content) || BANNED_DYNAMIC.test(content)) {
+        offenders.push(file);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('contains zero imports of @aws-sdk/*', () => {
+    const files = collectTsFiles(SRC_DIR);
+    expect(files.length).toBeGreaterThan(0);
+    const offenders: string[] = [];
+    for (const file of files) {
+      const content = readFileSync(file, 'utf-8');
+      if (BANNED_AWS.test(content) || BANNED_AWS_DYNAMIC.test(content)) {
         offenders.push(file);
       }
     }
