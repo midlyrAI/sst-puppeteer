@@ -1,8 +1,11 @@
-export interface LogLineEvent {
-  readonly type: 'log-line';
-  readonly timestamp: number;
-  readonly functionName: string;
-  readonly level: 'debug' | 'info' | 'warn' | 'error';
-  readonly message: string;
-  readonly requestId?: string;
-}
+import { z } from 'zod';
+
+export const LogLineEventSchema = z.object({
+  type: z.literal('log-line'),
+  timestamp: z.number(),
+  functionName: z.string(),
+  level: z.enum(['debug', 'info', 'warn', 'error']),
+  message: z.string(),
+  requestId: z.string().optional(),
+});
+export type LogLineEvent = z.infer<typeof LogLineEventSchema>;

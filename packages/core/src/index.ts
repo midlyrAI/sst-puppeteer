@@ -20,10 +20,19 @@ export {
   type ServerFileWatcherOptions,
 } from './infra/discovery/server-file-watcher.js';
 export { HttpEventStream, type HttpEventStreamOptions } from './infra/stream/http-event-stream.js';
-export { runSst, type RunSstOptions, type RunSstResult } from './infra/process/run-sst.js';
+export {
+  runSst,
+  RunSstOptionsSchema,
+  RunSstResultSchema,
+  type RunSstOptions,
+  type RunSstResult,
+} from './infra/process/run-sst.js';
 export {
   PaneLogWatcher,
   type PaneLogWatcherOptions,
+  StartedEventSchema,
+  StoppedEventSchema,
+  AppendEventSchema,
   type StartedEvent,
   type StoppedEvent,
   type AppendEvent,
@@ -43,6 +52,7 @@ export { KEY, type KeySequence } from './common/keystroke/keystroke-encoder.js';
 export {
   PaneNavigator,
   type PaneNavigatorOptions,
+  NavTargetSchema,
   type NavTarget,
 } from './domain/pane/pane-navigator.js';
 export * from './common/contract/command.js';
@@ -51,6 +61,20 @@ export * from './domain/session/session-event.js';
 export {
   isSstBusEvent,
   isKnownStreamType,
+  SstBusEventSchema,
+  StreamMessageSchema,
+  UnknownStreamMessageSchema,
+  StackCommandEventSchema,
+  BuildSuccessEventSchema,
+  BuildFailedEventSchema,
+  CompleteEventSchema,
+  CompleteEventPayloadSchema,
+  DeployRequestedEventSchema,
+  DeployFailedEventSchema,
+  ConcurrentUpdateEventSchema,
+  CancelledEventSchema,
+  SkipEventSchema,
+  FileChangedEventSchema,
   type SstBusEvent,
   type StreamMessage,
   type UnknownStreamMessage,

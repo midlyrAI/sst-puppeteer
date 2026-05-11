@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   StopSessionInputSchema,
   type StopSessionInput,
@@ -9,7 +9,7 @@ import {
 export class StopSessionTool extends Tool<StopSessionInput, StopSessionOutput> {
   readonly name = 'stop_session';
   readonly description = 'Gracefully shut down the session (kills sst dev, releases resources).';
-  readonly inputSchema = zodToToolInputSchema(StopSessionInputSchema);
+  readonly inputSchema = StopSessionInputSchema;
 
   async execute(session: SSTSession, _input: StopSessionInput): Promise<StopSessionOutput> {
     await session.stop();

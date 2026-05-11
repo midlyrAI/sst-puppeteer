@@ -1,6 +1,13 @@
-export const EVENT_TYPES = ['state-change', 'command-status-change', 'log-line', 'error'] as const;
+import { z } from 'zod';
 
-export type EventType = (typeof EVENT_TYPES)[number];
+export const EventTypeSchema = z.enum([
+  'state-change',
+  'command-status-change',
+  'log-line',
+  'error',
+]);
+export type EventType = z.infer<typeof EventTypeSchema>;
+export const EVENT_TYPES = EventTypeSchema.options;
 
 export const DEFAULT_TIMEOUTS = {
   waitForReady: 120_000,

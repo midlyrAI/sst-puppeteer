@@ -1,19 +1,30 @@
-import type { StateChangeEvent } from '../state/state-change-event.js';
-import type { CommandStatusChangeEvent } from '../command/command-status-change-event.js';
-import type { LogLineEvent } from '../command/log-line-event.js';
+import { z } from 'zod';
+import { StateChangeEventSchema } from '../state/state-change-event.js';
+import { CommandStatusChangeEventSchema } from '../command/command-status-change-event.js';
+import { LogLineEventSchema } from '../command/log-line-event.js';
 
-export type { StateChangeEvent } from '../state/state-change-event.js';
-export type { CommandStatusChangeEvent } from '../command/command-status-change-event.js';
-export type { LogLineEvent } from '../command/log-line-event.js';
+export { StateChangeEventSchema, type StateChangeEvent } from '../state/state-change-event.js';
+export {
+  CommandStatusChangeEventSchema,
+  type CommandStatusChangeEvent,
+} from '../command/command-status-change-event.js';
+export { LogLineEventSchema, type LogLineEvent } from '../command/log-line-event.js';
 
-export interface ErrorEvent {
-  readonly type: 'error';
-  readonly timestamp: number;
-  readonly source: 'pty' | 'sse' | 'log' | 'session';
-  readonly message: string;
-  readonly cause?: unknown;
-}
+export const ErrorEventSchema = z.object({
+  type: z.literal('error'),
+  timestamp: z.number(),
+  source: z.enum(['pty', 'sse', 'log', 'session']),
+  message: z.string(),
+  cause: z.unknown().optional(),
+});
+export type ErrorEvent = z.infer<typeof ErrorEventSchema>;
 
-export type SessionEvent = StateChangeEvent | CommandStatusChangeEvent | LogLineEvent | ErrorEvent;
+export const SessionEventSchema = z.discriminatedUnion('type', [
+  StateChangeEventSchema,
+  CommandStatusChangeEventSchema,
+  LogLineEventSchema,
+  ErrorEventSchema,
+]);
+export type SessionEvent = z.infer<typeof SessionEventSchema>;
 
 export type SessionEventType = SessionEvent['type'];

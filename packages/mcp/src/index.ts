@@ -1,7 +1,6 @@
 export * from './types/tools.js';
 export {
   Tool,
-  type ToolInputSchema,
   ToolRegistry,
   StartSessionTool,
   ListSessionsTool,
@@ -14,6 +13,7 @@ export {
   ReadCommandLogsTool,
   WaitForNextReadyTool,
   StopSessionTool,
+  RunSstTool,
   defaultRegistry,
 } from './tools/index.js';
 export { Transport, StdioTransport } from './transport.js';

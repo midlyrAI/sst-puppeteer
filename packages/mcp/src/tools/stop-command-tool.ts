@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   StopCommandInputSchema,
   type StopCommandInput,
@@ -9,7 +9,7 @@ import {
 export class StopCommandTool extends Tool<StopCommandInput, StopCommandOutput> {
   readonly name = 'stop_command';
   readonly description = 'Stop a running dev command.';
-  readonly inputSchema = zodToToolInputSchema(StopCommandInputSchema);
+  readonly inputSchema = StopCommandInputSchema;
 
   async execute(session: SSTSession, input: StopCommandInput): Promise<StopCommandOutput> {
     const result = await session.stopCommand(input.commandName);

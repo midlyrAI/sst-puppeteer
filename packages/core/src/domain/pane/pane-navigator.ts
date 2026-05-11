@@ -1,14 +1,16 @@
+import { z } from 'zod';
 import { type Pty } from '../../common/contract/pty.js';
 import { type CommandRegistry } from '../command/command-registry.js';
 import { CommandNotFoundError } from '../../common/error/errors.js';
 import { KEY } from '../../common/keystroke/keystroke-encoder.js';
 
-export type NavTarget = {
-  name: string;
-  killable: boolean;
-  alive: boolean;
-  isSystem: boolean;
-};
+export const NavTargetSchema = z.object({
+  name: z.string(),
+  killable: z.boolean(),
+  alive: z.boolean(),
+  isSystem: z.boolean(),
+});
+export type NavTarget = z.infer<typeof NavTargetSchema>;
 
 export interface PaneNavigatorOptions {
   adapter: Pty;

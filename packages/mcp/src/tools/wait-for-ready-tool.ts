@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   WaitForReadyInputSchema,
   type WaitForReadyInput,
@@ -9,7 +9,7 @@ import {
 export class WaitForReadyTool extends Tool<WaitForReadyInput, WaitForReadyOutput> {
   readonly name = 'wait_for_ready';
   readonly description = 'Block until the initial deploy of the session reaches the ready state.';
-  readonly inputSchema = zodToToolInputSchema(WaitForReadyInputSchema);
+  readonly inputSchema = WaitForReadyInputSchema;
 
   async execute(session: SSTSession, input: WaitForReadyInput): Promise<WaitForReadyOutput> {
     const result = await session.waitForReady({ timeoutMs: input.timeoutMs });

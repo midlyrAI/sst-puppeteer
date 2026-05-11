@@ -1,19 +1,16 @@
 import { statSync } from 'node:fs';
 import * as path from 'node:path';
+import { z } from 'zod';
 import { type Logger, NoopLogger } from '../../common/logger/logger.js';
 
-export interface StartedEvent {
-  readonly name: string;
-}
+export const StartedEventSchema = z.object({ name: z.string() });
+export type StartedEvent = z.infer<typeof StartedEventSchema>;
 
-export interface StoppedEvent {
-  readonly name: string;
-}
+export const StoppedEventSchema = z.object({ name: z.string() });
+export type StoppedEvent = z.infer<typeof StoppedEventSchema>;
 
-export interface AppendEvent {
-  readonly name: string;
-  readonly bytes: number;
-}
+export const AppendEventSchema = z.object({ name: z.string(), bytes: z.number() });
+export type AppendEvent = z.infer<typeof AppendEventSchema>;
 
 export interface PaneLogWatcherOptions {
   readonly projectDir: string;
