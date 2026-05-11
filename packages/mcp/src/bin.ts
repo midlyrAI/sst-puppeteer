@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+/**
+ * sst-puppeteer MCP server entrypoint.
+ *
+ * Stdout is reserved for the MCP protocol (stdio transport) — every log
+ * line, error trace, or diagnostic MUST go to stderr. A single stray
+ * `console.log` will corrupt the JSON-RPC stream and the host will drop
+ * the connection.
+ */
 import { SessionBuilder } from '@sst-puppeteer/core';
 import { createMcpServer, StdioTransport } from './index.js';
 import { type SessionFactory } from './server.js';

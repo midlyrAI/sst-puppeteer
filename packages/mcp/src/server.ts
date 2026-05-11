@@ -6,6 +6,34 @@ import { defaultRegistry } from './tools/index.js';
 import { type Transport, type StdioTransport } from './transport.js';
 import { type StartSessionInput } from './types/tools.js';
 
+// MCP safety hints surfaced to the host's model so it can prefer safer tools.
+//   readOnlyHint    — no mutations to local state or external world
+//   idempotentHint  — repeating the call is safe (no extra side-effects)
+//   destructiveHint — irreversible side-effects (killing processes, ending sessions)
+//   openWorldHint   — touches the world outside this process (spawns sst dev,
+//                     which talks to AWS / SST's deploy pipeline)
+const TOOL_ANNOTATIONS: Record<
+  string,
+  {
+    readOnlyHint?: boolean;
+    idempotentHint?: boolean;
+    destructiveHint?: boolean;
+    openWorldHint?: boolean;
+  }
+> = {
+  list_sessions: { readOnlyHint: true, idempotentHint: true },
+  list_commands: { readOnlyHint: true, idempotentHint: true },
+  get_command_status: { readOnlyHint: true, idempotentHint: true },
+  read_command_logs: { readOnlyHint: true, idempotentHint: true },
+  wait_for_ready: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  wait_for_next_ready: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  start_session: { openWorldHint: true },
+  start_command: { openWorldHint: true },
+  restart_command: { destructiveHint: true, openWorldHint: true },
+  stop_command: { destructiveHint: true },
+  stop_session: { destructiveHint: true },
+};
+
 export type SessionFactory = (opts: Omit<StartSessionInput, never>) => Promise<SSTSession>;
 
 export interface McpServerOptions {
@@ -148,6 +176,7 @@ export class McpServer {
           name: t.name,
           description: t.description,
           inputSchema: t.inputSchema,
+          ...(TOOL_ANNOTATIONS[t.name] ? { annotations: TOOL_ANNOTATIONS[t.name] } : {}),
         })),
       };
     });
