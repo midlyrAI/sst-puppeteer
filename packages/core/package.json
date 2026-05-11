@@ -1,6 +1,6 @@
 {
   "name": "@sst-puppeteer/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Core for sst-puppeteer — SSTSession, /stream subscription, pane navigation, default node-pty adapter.",
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@sst-puppeteer/mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "MCP server frontend for sst-puppeteer — exposes SSTSession over the Model Context Protocol.",
   "license": "MIT",
   "type": "module",
