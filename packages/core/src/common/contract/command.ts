@@ -1,10 +1,23 @@
 import { z } from 'zod';
 
-export const CommandKindSchema = z.enum(['service', 'task', 'tunnel', 'function-host']);
-export type CommandKind = z.infer<typeof CommandKindSchema>;
+export const CommandKind = {
+  SERVICE: 'service',
+  TASK: 'task',
+  TUNNEL: 'tunnel',
+  FUNCTION_HOST: 'function-host',
+} as const;
+export type CommandKind = (typeof CommandKind)[keyof typeof CommandKind];
+export const CommandKindSchema = z.enum(CommandKind);
 
-export const CommandStatusSchema = z.enum(['idle', 'starting', 'running', 'stopped', 'errored']);
-export type CommandStatus = z.infer<typeof CommandStatusSchema>;
+export const CommandStatus = {
+  IDLE: 'idle',
+  STARTING: 'starting',
+  RUNNING: 'running',
+  STOPPED: 'stopped',
+  ERRORED: 'errored',
+} as const;
+export type CommandStatus = (typeof CommandStatus)[keyof typeof CommandStatus];
+export const CommandStatusSchema = z.enum(CommandStatus);
 
 export const CommandSpecSchema = z.object({
   name: z.string(),

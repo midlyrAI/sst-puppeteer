@@ -10,10 +10,19 @@ export {
 } from '../command/command-status-change-event.js';
 export { LogLineEventSchema, type LogLineEvent } from '../command/log-line-event.js';
 
+export const ErrorSource = {
+  PTY: 'pty',
+  SSE: 'sse',
+  LOG: 'log',
+  SESSION: 'session',
+} as const;
+export type ErrorSource = (typeof ErrorSource)[keyof typeof ErrorSource];
+export const ErrorSourceSchema = z.enum(ErrorSource);
+
 export const ErrorEventSchema = z.object({
   type: z.literal('error'),
   timestamp: z.number(),
-  source: z.enum(['pty', 'sse', 'log', 'session']),
+  source: ErrorSourceSchema,
   message: z.string(),
   cause: z.unknown().optional(),
 });
