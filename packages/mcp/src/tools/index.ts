@@ -1,5 +1,6 @@
 import { ToolRegistry } from './registry.js';
 import { StartSessionTool } from './start-session-tool.js';
+import { ListSessionsTool } from './list-sessions-tool.js';
 import { WaitForReadyTool } from './wait-for-ready-tool.js';
 import { ListCommandsTool } from './list-commands-tool.js';
 import { GetCommandStatusTool } from './get-command-status-tool.js';
@@ -14,6 +15,7 @@ export { TOOL_NAMES, type ToolName } from '../types/tools.js';
 export { Tool, type ToolInputSchema } from './tool.js';
 export { ToolRegistry } from './registry.js';
 export { StartSessionTool } from './start-session-tool.js';
+export { ListSessionsTool } from './list-sessions-tool.js';
 export { WaitForReadyTool } from './wait-for-ready-tool.js';
 export { ListCommandsTool } from './list-commands-tool.js';
 export { GetCommandStatusTool } from './get-command-status-tool.js';
@@ -27,6 +29,7 @@ export { StopSessionTool } from './stop-session-tool.js';
 export const defaultRegistry = (): ToolRegistry => {
   const registry = new ToolRegistry();
   registry.register(new StartSessionTool());
+  registry.register(new ListSessionsTool());
   registry.register(new WaitForReadyTool());
   registry.register(new ListCommandsTool());
   registry.register(new GetCommandStatusTool());

@@ -4,6 +4,7 @@ export {
   type ToolInputSchema,
   ToolRegistry,
   StartSessionTool,
+  ListSessionsTool,
   WaitForReadyTool,
   ListCommandsTool,
   GetCommandStatusTool,

@@ -21,6 +21,8 @@ export class McpServer {
   private readonly _options: McpServerOptions;
   private _sdkServer: Server | null = null;
   private _sessions: Map<string, SSTSession> = new Map();
+  private _sessionMeta: Map<string, { projectDir: string; stage?: string; startedAt: number }> =
+    new Map();
   private _started: boolean = false;
 
   constructor(opts: McpServerOptions) {
@@ -70,8 +72,29 @@ export class McpServer {
         });
         await session.start();
         this._sessions.set(session.id, session);
+        this._sessionMeta.set(session.id, {
+          projectDir,
+          stage: input['stage'] as string | undefined,
+          startedAt: Date.now(),
+        });
         return {
           content: [{ type: 'text', text: JSON.stringify({ sessionId: session.id }) }],
+        };
+      }
+
+      if (name === 'list_sessions') {
+        const sessions = [...this._sessions.entries()].map(([sessionId, s]) => {
+          const meta = this._sessionMeta.get(sessionId);
+          return {
+            sessionId,
+            projectDir: meta?.projectDir ?? '',
+            stage: meta?.stage,
+            state: s.state,
+            startedAt: meta?.startedAt ?? 0,
+          };
+        });
+        return {
+          content: [{ type: 'text', text: JSON.stringify({ sessions }) }],
         };
       }
 
@@ -90,6 +113,10 @@ export class McpServer {
       }
 
       const result = await tool.execute(session, input as never);
+      if (name === 'stop_session') {
+        this._sessions.delete(sessionId);
+        this._sessionMeta.delete(sessionId);
+      }
       return {
         content: [{ type: 'text', text: JSON.stringify(result) }],
       };
@@ -142,6 +169,7 @@ export class McpServer {
 
     await Promise.allSettled([...this._sessions.values()].map((s) => s.stop()));
     this._sessions.clear();
+    this._sessionMeta.clear();
 
     await this._sdkServer?.close();
     await this.transport.stop();

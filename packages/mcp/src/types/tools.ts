@@ -7,6 +7,7 @@ import {
 
 export const TOOL_NAMES = [
   'start_session',
+  'list_sessions',
   'wait_for_ready',
   'list_commands',
   'get_command_status',
@@ -110,4 +111,19 @@ export interface StopSessionInput {
 }
 export interface StopSessionOutput {
   readonly stopped: true;
+}
+
+export interface ListSessionsInput {
+  // no inputs
+  readonly _?: never;
+}
+export interface SessionSummary {
+  readonly sessionId: string;
+  readonly projectDir: string;
+  readonly stage?: string;
+  readonly state: SessionState;
+  readonly startedAt: number;
+}
+export interface ListSessionsOutput {
+  readonly sessions: readonly SessionSummary[];
 }

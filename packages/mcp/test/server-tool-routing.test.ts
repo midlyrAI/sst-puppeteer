@@ -54,10 +54,10 @@ const buildServer = (overrideSessionFactory?: SessionFactory): McpServer => {
 };
 
 describe('McpServer tool routing (_handleToolCall)', () => {
-  it('Test 1: tools/list returns 10 tools with correct names', () => {
+  it('Test 1: tools/list returns 11 tools with correct names', () => {
     const server = buildServer();
     const registry = defaultRegistry();
-    expect(server.registry.size()).toBe(10);
+    expect(server.registry.size()).toBe(11);
     const names = server.registry.list().map((t) => t.name);
     const expectedNames = registry.list().map((t) => t.name);
     expect(names.sort()).toEqual(expectedNames.sort());
