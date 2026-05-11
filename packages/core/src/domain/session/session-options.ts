@@ -33,6 +33,17 @@ export interface SessionOptions {
   /** Args prepended to the `dev` subcommand — e.g. `['sst']` when `sstCommand` is `'bunx'`. */
   readonly sstCommandArgs?: readonly string[];
   /**
+   * Extra args appended after `dev` and `--stage`. Use for any `sst dev` flag
+   * the wrapper does not surface directly (e.g. `--print-logs`, `--verbose`,
+   * `--target <resource>`).
+   */
+  readonly extraDevArgs?: readonly string[];
+  /**
+   * Extra environment variables merged on top of `process.env` for the spawned
+   * SST process. Overrides `awsProfile` / `awsRegion` when keys collide.
+   */
+  readonly env?: Readonly<Record<string, string>>;
+  /**
    * Optional explicit command list. When provided, bypasses `parseSstConfig`
    * entirely. Use this for projects whose `sst.config.ts` registers DevCommands
    * via function-call indirection (the regex parser cannot follow that).

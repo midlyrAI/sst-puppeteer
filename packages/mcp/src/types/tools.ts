@@ -23,8 +23,13 @@ export type ToolName = (typeof TOOL_NAMES)[number];
 export interface StartSessionInput {
   readonly projectDir: string;
   readonly awsProfile?: string;
+  readonly awsRegion?: string;
   readonly stage?: string;
   readonly commands?: readonly CommandSpec[];
+  readonly sstCommand?: string;
+  readonly sstCommandArgs?: readonly string[];
+  readonly extraDevArgs?: readonly string[];
+  readonly env?: Readonly<Record<string, string>>;
 }
 export interface StartSessionOutput {
   readonly sessionId: string;

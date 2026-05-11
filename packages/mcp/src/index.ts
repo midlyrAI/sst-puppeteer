@@ -15,7 +15,7 @@ export {
   StopSessionTool,
   defaultRegistry,
 } from './tools/index.js';
-export { Transport, StdioTransport, HttpTransport } from './transport.js';
+export { Transport, StdioTransport } from './transport.js';
 export {
   McpServer,
   createMcpServer,

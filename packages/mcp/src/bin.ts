@@ -3,9 +3,7 @@ import { SessionBuilder } from '@sst-puppeteer/core';
 import { createMcpServer, StdioTransport } from './index.js';
 import { type SessionFactory } from './server.js';
 
-const sessionFactory: SessionFactory = async ({ projectDir, stage, awsProfile, commands }) => {
-  return new SessionBuilder({ projectDir, stage, awsProfile, commands }).build();
-};
+const sessionFactory: SessionFactory = async (opts) => new SessionBuilder(opts).build();
 
 const main = async (): Promise<void> => {
   const server = createMcpServer({

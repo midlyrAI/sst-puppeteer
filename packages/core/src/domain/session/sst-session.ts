@@ -111,6 +111,7 @@ export class SSTSession {
       ...(this.options.sstCommandArgs ?? []),
       'dev',
       ...(stage ? ['--stage', stage] : []),
+      ...(this.options.extraDevArgs ?? []),
     ];
 
     // node-pty leaves ICRNL enabled on the slave termios, which translates our
@@ -126,6 +127,9 @@ export class SSTSession {
     const env: Record<string, string> = {
       ...(process.env as Record<string, string>),
       SST_LOG_CHILDREN: '1',
+      ...(this.options.awsProfile ? { AWS_PROFILE: this.options.awsProfile } : {}),
+      ...(this.options.awsRegion ? { AWS_REGION: this.options.awsRegion } : {}),
+      ...(this.options.env ?? {}),
     };
 
     await adapter.spawn({ command, args, cwd: projectDir, env, cols: 200, rows: 50 });

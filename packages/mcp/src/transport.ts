@@ -1,5 +1,4 @@
 import { type StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { NotImplementedError } from '@sst-puppeteer/core';
 
 export abstract class Transport {
   abstract start(): Promise<void>;
@@ -35,20 +34,5 @@ export class StdioTransport extends Transport {
     await this._sdk?.close();
     this._sdk = null;
     this._started = false;
-  }
-}
-
-export class HttpTransport extends Transport {
-  constructor(private readonly _port: number) {
-    super();
-  }
-
-  override async start(): Promise<void> {
-    void this._port;
-    throw new NotImplementedError('HttpTransport.start');
-  }
-
-  override async stop(): Promise<void> {
-    throw new NotImplementedError('HttpTransport.stop');
   }
 }

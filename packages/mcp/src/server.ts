@@ -4,15 +4,9 @@ import { type SSTSession, type CommandSpec } from '@sst-puppeteer/core';
 import type { ToolRegistry } from './tools/registry.js';
 import { defaultRegistry } from './tools/index.js';
 import { type Transport, type StdioTransport } from './transport.js';
+import { type StartSessionInput } from './types/tools.js';
 
-export interface SessionFactory {
-  (opts: {
-    projectDir: string;
-    awsProfile?: string;
-    stage?: string;
-    commands?: readonly CommandSpec[];
-  }): Promise<SSTSession>;
-}
+export type SessionFactory = (opts: Omit<StartSessionInput, never>) => Promise<SSTSession>;
 
 export interface McpServerOptions {
   readonly registry?: ToolRegistry;
@@ -63,14 +57,16 @@ export class McpServer {
             isError: true,
           };
         }
-        const awsProfile = input['awsProfile'] as string | undefined;
-        const stage = input['stage'] as string | undefined;
-        const commands = input['commands'] as readonly CommandSpec[] | undefined;
         const session = await this._options.sessionFactory({
           projectDir,
-          awsProfile,
-          stage,
-          commands,
+          awsProfile: input['awsProfile'] as string | undefined,
+          awsRegion: input['awsRegion'] as string | undefined,
+          stage: input['stage'] as string | undefined,
+          commands: input['commands'] as readonly CommandSpec[] | undefined,
+          sstCommand: input['sstCommand'] as string | undefined,
+          sstCommandArgs: input['sstCommandArgs'] as readonly string[] | undefined,
+          extraDevArgs: input['extraDevArgs'] as readonly string[] | undefined,
+          env: input['env'] as Readonly<Record<string, string>> | undefined,
         });
         await session.start();
         this._sessions.set(session.id, session);
