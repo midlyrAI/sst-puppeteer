@@ -1,6 +1,6 @@
 import { UpdateFailedError } from '../../common/error/errors.js';
 import { type Logger, NoopLogger } from '../../common/logger/logger.js';
-import { type SessionState } from './session-state.js';
+import { SessionState } from './session-state.js';
 import { type StateChangeEvent } from './state-change-event.js';
 
 export type SessionStateChangeHandler = (from: SessionState, to: SessionState) => void;
@@ -13,7 +13,7 @@ interface Waiter {
 }
 
 export class SessionStateMachine {
-  private _current: SessionState = 'idle';
+  private _current: SessionState = SessionState.IDLE;
   private _changeHandlers: Set<SessionStateChangeHandler> = new Set();
   private _waiters: Array<Waiter> = [];
   private readonly _logger: Logger;
@@ -55,7 +55,7 @@ export class SessionStateMachine {
           clearTimeout(waiter.timeoutId);
         }
         waiter.resolve();
-      } else if (to === 'error') {
+      } else if (to === SessionState.ERROR) {
         // Transitioning to error rejects any waiter targeting 'ready' (or any other non-error state)
         if (waiter.timeoutId !== undefined) {
           clearTimeout(waiter.timeoutId);

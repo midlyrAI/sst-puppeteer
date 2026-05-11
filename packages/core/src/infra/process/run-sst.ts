@@ -1,25 +1,28 @@
 import { spawn } from 'node:child_process';
+import { z } from 'zod';
 
-export interface RunSstOptions {
-  readonly projectDir: string;
-  readonly args: readonly string[];
+export const RunSstOptionsSchema = z.object({
+  projectDir: z.string(),
+  args: z.array(z.string()),
   /** Convenience — when set, `--stage <stage>` is appended to `args` automatically. */
-  readonly stage?: string;
-  readonly env?: Readonly<Record<string, string>>;
+  stage: z.string().optional(),
+  env: z.record(z.string(), z.string()).optional(),
   /** Default: 300_000 (5 min). */
-  readonly timeoutMs?: number;
+  timeoutMs: z.number().optional(),
   /** Default: `'sst'`. Use a full path when sst is not on PATH. */
-  readonly sstCommand?: string;
-}
+  sstCommand: z.string().optional(),
+});
+export type RunSstOptions = z.infer<typeof RunSstOptionsSchema>;
 
-export interface RunSstResult {
-  readonly stdout: string;
-  readonly stderr: string;
-  readonly exitCode: number | null;
-  readonly signal: NodeJS.Signals | null;
-  readonly durationMs: number;
-  readonly timedOut: boolean;
-}
+export const RunSstResultSchema = z.object({
+  stdout: z.string(),
+  stderr: z.string(),
+  exitCode: z.number().nullable(),
+  signal: z.string().nullable(),
+  durationMs: z.number(),
+  timedOut: z.boolean(),
+});
+export type RunSstResult = z.infer<typeof RunSstResultSchema>;
 
 /**
  * One-shot invocation of any `sst` subcommand (`deploy`, `remove`, `unlock`,

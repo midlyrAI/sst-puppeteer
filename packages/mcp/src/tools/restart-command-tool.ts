@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   RestartCommandInputSchema,
   type RestartCommandInput,
@@ -9,7 +9,7 @@ import {
 export class RestartCommandTool extends Tool<RestartCommandInput, RestartCommandOutput> {
   readonly name = 'restart_command';
   readonly description = 'Restart a dev command (stop if running, then start fresh).';
-  readonly inputSchema = zodToToolInputSchema(RestartCommandInputSchema);
+  readonly inputSchema = RestartCommandInputSchema;
 
   async execute(session: SSTSession, input: RestartCommandInput): Promise<RestartCommandOutput> {
     const result = await session.restartCommand(input.commandName);

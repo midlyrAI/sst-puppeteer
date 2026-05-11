@@ -1,14 +1,17 @@
+import { z } from 'zod';
 import { type Pty } from '../../common/contract/pty.js';
 import { type CommandRegistry } from '../command/command-registry.js';
+import { CommandStatus } from '../../common/contract/command.js';
 import { CommandNotFoundError } from '../../common/error/errors.js';
 import { KEY } from '../../common/keystroke/keystroke-encoder.js';
 
-export type NavTarget = {
-  name: string;
-  killable: boolean;
-  alive: boolean;
-  isSystem: boolean;
-};
+export const NavTargetSchema = z.object({
+  name: z.string(),
+  killable: z.boolean(),
+  alive: z.boolean(),
+  isSystem: z.boolean(),
+});
+export type NavTarget = z.infer<typeof NavTargetSchema>;
 
 export interface PaneNavigatorOptions {
   adapter: Pty;
@@ -68,7 +71,7 @@ export class PaneNavigator {
     }
 
     for (const cmd of commands) {
-      const alive = cmd.status === 'running' || cmd.status === 'starting';
+      const alive = cmd.status === CommandStatus.RUNNING || cmd.status === CommandStatus.STARTING;
       targets.push({
         name: cmd.spec.name,
         killable: cmd.spec.killable,

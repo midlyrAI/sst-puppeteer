@@ -138,7 +138,7 @@ function extractDevCommands(source: string, logger?: Logger): CommandSpec[] {
       directory,
       environment: environment ?? undefined,
       autostart,
-      link: link ?? undefined,
+      link: link ? [...link] : undefined,
       killable: true,
     });
   }

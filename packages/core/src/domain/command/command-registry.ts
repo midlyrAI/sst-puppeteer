@@ -1,10 +1,10 @@
 import { CommandNotFoundError } from '../../common/error/errors.js';
 import { type Logger, NoopLogger } from '../../common/logger/logger.js';
 import {
+  CommandStatus,
   type Command,
   type CommandLastExit,
   type CommandSpec,
-  type CommandStatus,
 } from '../../common/contract/command.js';
 
 export type CommandStatusChangeHandler = (
@@ -32,7 +32,7 @@ export class CommandRegistry {
   }
 
   register(spec: CommandSpec): void {
-    this._commands.set(spec.name, { spec, status: 'idle' });
+    this._commands.set(spec.name, { spec, status: CommandStatus.IDLE });
   }
 
   /** Drop a registered command. No-op if the name is not registered. */
@@ -56,11 +56,15 @@ export class CommandRegistry {
     }
 
     let startedAt: number | undefined = existing.startedAt;
-    if (status === 'starting' || status === 'running') {
+    if (status === CommandStatus.STARTING || status === CommandStatus.RUNNING) {
       if (startedAt === undefined) {
         startedAt = Date.now();
       }
-    } else if (status === 'stopped' || status === 'errored' || status === 'idle') {
+    } else if (
+      status === CommandStatus.STOPPED ||
+      status === CommandStatus.ERRORED ||
+      status === CommandStatus.IDLE
+    ) {
       startedAt = undefined;
     }
 
@@ -124,7 +128,7 @@ export class CommandRegistry {
       if (timeoutMs !== undefined) {
         waiter.timeoutId = setTimeout(() => {
           this._waiters = this._waiters.filter((w) => w !== waiter);
-          const current = this._commands.get(name)?.status ?? 'idle';
+          const current = this._commands.get(name)?.status ?? CommandStatus.IDLE;
           reject(
             new Error(
               `Timed out waiting for command "${name}" to reach status "${target}" (current: "${current}")`,

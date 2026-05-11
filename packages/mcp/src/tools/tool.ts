@@ -1,27 +1,15 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { type ZodType, toJSONSchema } from 'zod';
-
-export interface ToolInputSchema {
-  readonly type: 'object';
-  readonly properties: Readonly<Record<string, unknown>>;
-  readonly required?: readonly string[];
-}
+import { type ZodType } from 'zod';
 
 /**
- * Convert a Zod schema into the JSON Schema shape the MCP host expects.
- * Zod emits a `$schema` field by default and may emit `additionalProperties:
- * false` — both are valid JSON Schema but noisy for our use; we strip them.
+ * Base class for all MCP tools. `inputSchema` is a Zod schema — the canonical
+ * source of truth for both the wire-level JSON Schema (converted once at the
+ * protocol boundary in `McpServer`) and the TypeScript input type (derived
+ * via `z.infer` in `types/tools.ts`).
  */
-export function zodToToolInputSchema(schema: ZodType): ToolInputSchema {
-  const json = toJSONSchema(schema, { target: 'draft-7' }) as Record<string, unknown>;
-  delete json['$schema'];
-  delete json['additionalProperties'];
-  return json as unknown as ToolInputSchema;
-}
-
 export abstract class Tool<TInput, TOutput> {
   abstract readonly name: string;
   abstract readonly description: string;
-  abstract readonly inputSchema: ToolInputSchema;
+  abstract readonly inputSchema: ZodType<TInput>;
   abstract execute(session: SSTSession, input: TInput): Promise<TOutput>;
 }

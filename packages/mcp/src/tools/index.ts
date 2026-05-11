@@ -13,7 +13,7 @@ import { StopSessionTool } from './stop-session-tool.js';
 import { RunSstTool } from './run-sst-tool.js';
 
 export { TOOL_NAMES, type ToolName } from '../types/tools.js';
-export { Tool, type ToolInputSchema } from './tool.js';
+export { Tool } from './tool.js';
 export { ToolRegistry } from './registry.js';
 export { StartSessionTool } from './start-session-tool.js';
 export { ListSessionsTool } from './list-sessions-tool.js';

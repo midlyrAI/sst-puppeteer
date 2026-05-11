@@ -12,8 +12,8 @@ import { NoopLogger } from '../../common/logger/logger.js';
 import { type WaitOptions, type Unsubscribe, type SessionOptions } from './session-options.js';
 import { type Logger } from '../../common/logger/logger.js';
 import { type SessionEvent, type StateChangeEvent } from './session-event.js';
-import { type SessionState } from '../state/session-state.js';
-import { type Command, type CommandStatus } from '../../common/contract/command.js';
+import { SessionState } from '../state/session-state.js';
+import { CommandStatus, type Command } from '../../common/contract/command.js';
 import { SessionStateMachine } from '../state/session-state-machine.js';
 import { CommandRegistry } from '../command/command-registry.js';
 import { type Pty, type PtyUnsubscribe } from '../../common/contract/pty.js';
@@ -236,7 +236,7 @@ export class SSTSession {
     });
 
     // Race: wait for 'ready' state OR early exit from SST
-    const readyPromise = this._sessionStateMachine.waitFor('ready', 5 * 60 * 1000);
+    const readyPromise = this._sessionStateMachine.waitFor(SessionState.READY, 5 * 60 * 1000);
     const exitRejector = this._parentExitPromise.then(({ code, signal }) => {
       throw new Error(
         `sst dev exited during startup (code=${code}, signal=${signal}). ` +
@@ -293,13 +293,15 @@ export class SSTSession {
   }
 
   async waitForReady(opts?: WaitOptions): Promise<{ state: SessionState; durationMs: number }> {
-    if (this.state === 'disconnected') {
+    if (this.state === SessionState.DISCONNECTED) {
       throw this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0);
     }
 
     const startedAt = Date.now();
     const timeoutMs = opts?.timeoutMs ?? 5 * 60 * 1000;
-    await this._raceWithDisconnect(this._sessionStateMachine.waitFor('ready', timeoutMs));
+    await this._raceWithDisconnect(
+      this._sessionStateMachine.waitFor(SessionState.READY, timeoutMs),
+    );
 
     // Wait for autostart commands
     const autostartCommands = this._commandRegistry
@@ -315,7 +317,7 @@ export class SSTSession {
         );
       }
       await this._raceWithDisconnect(
-        this._commandRegistry.waitForStatus(cmd.spec.name, 'running', remaining),
+        this._commandRegistry.waitForStatus(cmd.spec.name, CommandStatus.RUNNING, remaining),
       );
     }
 
@@ -325,7 +327,7 @@ export class SSTSession {
   async waitForNextReady(
     opts?: WaitOptions & { commandName?: string },
   ): Promise<{ state: SessionState; durationMs: number }> {
-    if (this.state === 'disconnected') {
+    if (this.state === SessionState.DISCONNECTED) {
       throw this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0);
     }
 
@@ -350,15 +352,19 @@ export class SSTSession {
           const unsub = this._commandRegistry.onChange((changedName, _from, to) => {
             if (changedName !== name) return;
             if (phase === 'waiting-for-exit') {
-              if (to === 'stopped' || to === 'errored' || to === 'starting') {
+              if (
+                to === CommandStatus.STOPPED ||
+                to === CommandStatus.ERRORED ||
+                to === CommandStatus.STARTING
+              ) {
                 phase = 'waiting-for-running';
               }
             } else if (phase === 'waiting-for-running') {
-              if (to === 'running') {
+              if (to === CommandStatus.RUNNING) {
                 clearTimeout(timer);
                 unsub();
                 resolve({ state: this.state, durationMs: Date.now() - startedAt });
-              } else if (to === 'errored') {
+              } else if (to === CommandStatus.ERRORED) {
                 clearTimeout(timer);
                 unsub();
                 reject(new UpdateFailedError(`Command '${name}' errored during redeploy`));
@@ -380,13 +386,13 @@ export class SSTSession {
 
         const unsub = this._sessionStateMachine.onChange((_from, to) => {
           if (phase === 'waiting-for-busy') {
-            if (to === 'busy') phase = 'waiting-for-ready';
+            if (to === SessionState.BUSY) phase = 'waiting-for-ready';
           } else if (phase === 'waiting-for-ready') {
-            if (to === 'ready') {
+            if (to === SessionState.READY) {
               clearTimeout(timer);
               unsub();
               resolve({ state: this.state, durationMs: Date.now() - startedAt });
-            } else if (to === 'error') {
+            } else if (to === SessionState.ERROR) {
               clearTimeout(timer);
               unsub();
               reject(
@@ -411,7 +417,9 @@ export class SSTSession {
     return cmd.status;
   }
 
-  async startCommand(name: string): Promise<{ status: 'running'; durationMs: number }> {
+  async startCommand(
+    name: string,
+  ): Promise<{ status: typeof CommandStatus.RUNNING; durationMs: number }> {
     this._assertConnected();
 
     const cmd = this._commandRegistry.get(name);
@@ -420,7 +428,7 @@ export class SSTSession {
     }
 
     const currentStatus = cmd.status;
-    if (currentStatus === 'running' || currentStatus === 'starting') {
+    if (currentStatus === CommandStatus.RUNNING || currentStatus === CommandStatus.STARTING) {
       throw new CommandAlreadyRunningError(
         `Command '${name}' is already ${currentStatus} — stop it first`,
       );
@@ -436,14 +444,14 @@ export class SSTSession {
     await this._paneNavigator.sendKey(KEY.enter);
 
     // Optimistic status update
-    this._commandRegistry.applyStatus(name, 'starting');
+    this._commandRegistry.applyStatus(name, CommandStatus.STARTING);
 
-    await this._commandRegistry.waitForStatus(name, 'running', 60_000);
+    await this._commandRegistry.waitForStatus(name, CommandStatus.RUNNING, 60_000);
 
-    return { status: 'running', durationMs: Date.now() - startedAt };
+    return { status: CommandStatus.RUNNING, durationMs: Date.now() - startedAt };
   }
 
-  async stopCommand(name: string): Promise<{ status: 'stopped' }> {
+  async stopCommand(name: string): Promise<{ status: typeof CommandStatus.STOPPED }> {
     this._assertConnected();
 
     const cmd = this._commandRegistry.get(name);
@@ -452,7 +460,7 @@ export class SSTSession {
     }
 
     const currentStatus = cmd.status;
-    if (currentStatus !== 'running' && currentStatus !== 'starting') {
+    if (currentStatus !== CommandStatus.RUNNING && currentStatus !== CommandStatus.STARTING) {
       throw new CommandNotRunningError(
         `Command '${name}' is not running (status: '${currentStatus}')`,
       );
@@ -469,12 +477,14 @@ export class SSTSession {
     await this._paneNavigator.navigateTo(name);
     await this._paneNavigator.sendKey(KEY.keyX);
 
-    await this._commandRegistry.waitForStatus(name, 'stopped', 30_000);
+    await this._commandRegistry.waitForStatus(name, CommandStatus.STOPPED, 30_000);
 
-    return { status: 'stopped' };
+    return { status: CommandStatus.STOPPED };
   }
 
-  async restartCommand(name: string): Promise<{ status: 'running'; durationMs: number }> {
+  async restartCommand(
+    name: string,
+  ): Promise<{ status: typeof CommandStatus.RUNNING; durationMs: number }> {
     this._assertConnected();
 
     const startedAt = Date.now();
@@ -483,13 +493,13 @@ export class SSTSession {
       throw new CommandNotFoundError(`No command named '${name}'`);
     }
 
-    if (cmd.status === 'running' || cmd.status === 'starting') {
+    if (cmd.status === CommandStatus.RUNNING || cmd.status === CommandStatus.STARTING) {
       await this.stopCommand(name);
     }
 
     await this.startCommand(name);
 
-    return { status: 'running', durationMs: Date.now() - startedAt };
+    return { status: CommandStatus.RUNNING, durationMs: Date.now() - startedAt };
   }
 
   async readCommandLogs(opts: {
@@ -545,7 +555,7 @@ export class SSTSession {
   // ---------------------------------------------------------------------------
 
   private _assertConnected(): void {
-    if (this.state === 'disconnected') {
+    if (this.state === SessionState.DISCONNECTED) {
       throw this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0);
     }
   }
@@ -554,7 +564,7 @@ export class SSTSession {
     return new Promise<T>((resolve, reject) => {
       let settled = false;
       const unsub = this._sessionStateMachine.onChange((_from, to) => {
-        if (to === 'disconnected' && !settled) {
+        if (to === SessionState.DISCONNECTED && !settled) {
           settled = true;
           unsub();
           reject(this._disconnectError ?? new StreamConnectionError('Stream disconnected', '', 0));
@@ -631,8 +641,8 @@ export class SSTSession {
       case 'project.StackCommandEvent': {
         if (msg.event.Command === 'deploy') {
           const cur = this._sessionStateMachine.current;
-          if (cur === 'idle' || cur === 'ready') {
-            this._dispatchStateChange(cur, 'busy');
+          if (cur === SessionState.IDLE || cur === SessionState.READY) {
+            this._dispatchStateChange(cur, SessionState.BUSY);
           }
         }
         break;
@@ -643,8 +653,8 @@ export class SSTSession {
         // /stream replays the most recent CompleteEvent on connect, so we may
         // observe it from any state — accept the transition unconditionally.
         const errored = (msg.event.Errors?.length ?? 0) > 0;
-        const target: SessionState = errored ? 'error' : 'ready';
-        if (cur !== target && cur !== 'disconnected') {
+        const target: SessionState = errored ? SessionState.ERROR : SessionState.READY;
+        if (cur !== target && cur !== SessionState.DISCONNECTED) {
           this._dispatchStateChange(cur, target);
         }
         break;
@@ -652,8 +662,8 @@ export class SSTSession {
       case 'project.BuildFailedEvent':
       case 'deployer.DeployFailedEvent': {
         const cur = this._sessionStateMachine.current;
-        if (cur !== 'error' && cur !== 'disconnected') {
-          this._dispatchStateChange(cur, 'error');
+        if (cur !== SessionState.ERROR && cur !== SessionState.DISCONNECTED) {
+          this._dispatchStateChange(cur, SessionState.ERROR);
         }
         break;
       }
@@ -666,8 +676,8 @@ export class SSTSession {
     if (err instanceof StreamConnectionError) {
       this._disconnectError = err;
       const from = this._sessionStateMachine.current;
-      if (from !== 'disconnected') {
-        this._dispatchStateChange(from, 'disconnected');
+      if (from !== SessionState.DISCONNECTED) {
+        this._dispatchStateChange(from, SessionState.DISCONNECTED);
       }
     }
   }
@@ -676,14 +686,14 @@ export class SSTSession {
     const cmd = this._commandRegistry.get(name);
     if (cmd === undefined) return;
     const from = cmd.status;
-    if (from === 'running') return; // idempotent
-    this._commandRegistry.applyStatus(name, 'running');
+    if (from === CommandStatus.RUNNING) return; // idempotent
+    this._commandRegistry.applyStatus(name, CommandStatus.RUNNING);
     this._emit({
       type: 'command-status-change',
       timestamp: Date.now(),
       commandName: name,
       from,
-      to: 'running',
+      to: CommandStatus.RUNNING,
     });
   }
 
@@ -691,14 +701,14 @@ export class SSTSession {
     const cmd = this._commandRegistry.get(name);
     if (cmd === undefined) return;
     const from = cmd.status;
-    if (from === 'stopped') return;
-    this._commandRegistry.applyStatus(name, 'stopped', { code: null, signal: null });
+    if (from === CommandStatus.STOPPED) return;
+    this._commandRegistry.applyStatus(name, CommandStatus.STOPPED, { code: null, signal: null });
     this._emit({
       type: 'command-status-change',
       timestamp: Date.now(),
       commandName: name,
       from,
-      to: 'stopped',
+      to: CommandStatus.STOPPED,
       lastExit: { code: null, signal: null },
     });
   }

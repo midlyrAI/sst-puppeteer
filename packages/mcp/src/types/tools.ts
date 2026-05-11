@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import {
-  type Command,
-  type CommandSpec,
-  type CommandStatus,
-  type SessionState,
+  CommandSchema,
+  CommandSpecSchema,
+  CommandStatusSchema,
+  SessionStateSchema,
 } from '@sst-puppeteer/core';
 
 export const TOOL_NAMES = [
@@ -20,26 +20,10 @@ export const TOOL_NAMES = [
   'stop_session',
   'run_sst',
 ] as const;
+export const ToolNameSchema = z.enum(TOOL_NAMES);
+export type ToolName = z.infer<typeof ToolNameSchema>;
 
-export type ToolName = (typeof TOOL_NAMES)[number];
-
-// ─── Input schemas ───────────────────────────────────────────────────────────
-// Zod is the single source of truth for MCP tool inputs. `z.toJSONSchema` on
-// each schema produces the `inputSchema` we advertise via `tools/list`, and
-// `z.infer<typeof X>` derives the TypeScript type used internally.
-
-// Mirrors `CommandSpec` from core. Kept structural to avoid runtime coupling —
-// the host sends raw JSON, we validate it matches the contract.
-const CommandSpecSchema: z.ZodType<CommandSpec> = z.object({
-  name: z.string(),
-  kind: z.enum(['service', 'task', 'tunnel', 'function-host']),
-  command: z.string(),
-  directory: z.string().optional(),
-  environment: z.record(z.string(), z.string()).optional(),
-  autostart: z.boolean(),
-  link: z.array(z.string()).optional(),
-  killable: z.boolean(),
-});
+// ─── Inputs ──────────────────────────────────────────────────────────────────
 
 export const StartSessionInputSchema = z.object({
   projectDir: z.string(),
@@ -122,71 +106,82 @@ export const RunSstInputSchema = z.object({
 });
 export type RunSstInput = z.infer<typeof RunSstInputSchema>;
 
-// ─── Output types ────────────────────────────────────────────────────────────
-// Outputs are computed locally and serialized back to the host — no runtime
-// validation needed, so they stay as plain TS interfaces that reference core
-// types directly (single source of truth for domain shapes).
+// ─── Outputs ─────────────────────────────────────────────────────────────────
 
-export interface StartSessionOutput {
-  readonly sessionId: string;
-}
+export const StartSessionOutputSchema = z.object({
+  sessionId: z.string(),
+});
+export type StartSessionOutput = z.infer<typeof StartSessionOutputSchema>;
 
-export interface SessionSummary {
-  readonly sessionId: string;
-  readonly projectDir: string;
-  readonly stage?: string;
-  readonly state: SessionState;
-  readonly startedAt: number;
-}
-export interface ListSessionsOutput {
-  readonly sessions: readonly SessionSummary[];
-}
+export const SessionSummarySchema = z.object({
+  sessionId: z.string(),
+  projectDir: z.string(),
+  stage: z.string().optional(),
+  state: SessionStateSchema,
+  startedAt: z.number(),
+});
+export type SessionSummary = z.infer<typeof SessionSummarySchema>;
 
-export interface WaitForReadyOutput {
-  readonly state: SessionState;
-  readonly durationMs: number;
-}
+export const ListSessionsOutputSchema = z.object({
+  sessions: z.array(SessionSummarySchema),
+});
+export type ListSessionsOutput = z.infer<typeof ListSessionsOutputSchema>;
 
-export interface ListCommandsOutput {
-  readonly commands: readonly Command[];
-}
+export const WaitForReadyOutputSchema = z.object({
+  state: SessionStateSchema,
+  durationMs: z.number(),
+});
+export type WaitForReadyOutput = z.infer<typeof WaitForReadyOutputSchema>;
 
-export interface GetCommandStatusOutput {
-  readonly status: CommandStatus;
-}
+export const ListCommandsOutputSchema = z.object({
+  commands: z.array(CommandSchema),
+});
+export type ListCommandsOutput = z.infer<typeof ListCommandsOutputSchema>;
 
-export interface StartCommandOutput {
-  readonly status: 'running';
-  readonly durationMs: number;
-}
+export const GetCommandStatusOutputSchema = z.object({
+  status: CommandStatusSchema,
+});
+export type GetCommandStatusOutput = z.infer<typeof GetCommandStatusOutputSchema>;
 
-export interface RestartCommandOutput {
-  readonly status: 'running';
-  readonly durationMs: number;
-}
+export const StartCommandOutputSchema = z.object({
+  status: z.literal('running'),
+  durationMs: z.number(),
+});
+export type StartCommandOutput = z.infer<typeof StartCommandOutputSchema>;
 
-export interface StopCommandOutput {
-  readonly status: 'stopped';
-}
+export const RestartCommandOutputSchema = z.object({
+  status: z.literal('running'),
+  durationMs: z.number(),
+});
+export type RestartCommandOutput = z.infer<typeof RestartCommandOutputSchema>;
 
-export interface ReadCommandLogsOutput {
-  readonly lines: readonly string[];
-}
+export const StopCommandOutputSchema = z.object({
+  status: z.literal('stopped'),
+});
+export type StopCommandOutput = z.infer<typeof StopCommandOutputSchema>;
 
-export interface WaitForNextReadyOutput {
-  readonly state: SessionState;
-  readonly durationMs: number;
-}
+export const ReadCommandLogsOutputSchema = z.object({
+  lines: z.array(z.string()),
+});
+export type ReadCommandLogsOutput = z.infer<typeof ReadCommandLogsOutputSchema>;
 
-export interface StopSessionOutput {
-  readonly stopped: true;
-}
+export const WaitForNextReadyOutputSchema = z.object({
+  state: SessionStateSchema,
+  durationMs: z.number(),
+});
+export type WaitForNextReadyOutput = z.infer<typeof WaitForNextReadyOutputSchema>;
 
-export interface RunSstOutput {
-  readonly stdout: string;
-  readonly stderr: string;
-  readonly exitCode: number | null;
-  readonly signal: string | null;
-  readonly durationMs: number;
-  readonly timedOut: boolean;
-}
+export const StopSessionOutputSchema = z.object({
+  stopped: z.literal(true),
+});
+export type StopSessionOutput = z.infer<typeof StopSessionOutputSchema>;
+
+export const RunSstOutputSchema = z.object({
+  stdout: z.string(),
+  stderr: z.string(),
+  exitCode: z.number().nullable(),
+  signal: z.string().nullable(),
+  durationMs: z.number(),
+  timedOut: z.boolean(),
+});
+export type RunSstOutput = z.infer<typeof RunSstOutputSchema>;

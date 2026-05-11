@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   StartSessionInputSchema,
   type StartSessionInput,
@@ -14,7 +14,7 @@ import {
 export class StartSessionTool extends Tool<StartSessionInput, StartSessionOutput> {
   readonly name = 'start_session';
   readonly description = 'Spawn `sst dev` in the target project directory and return a session id.';
-  readonly inputSchema = zodToToolInputSchema(StartSessionInputSchema);
+  readonly inputSchema = StartSessionInputSchema;
 
   async execute(_session: SSTSession, _input: StartSessionInput): Promise<StartSessionOutput> {
     throw new Error('start_session is dispatched by McpServer; execute() must not be reached');

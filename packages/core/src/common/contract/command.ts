@@ -1,26 +1,46 @@
-export type CommandKind = 'service' | 'task' | 'tunnel' | 'function-host';
+import { z } from 'zod';
 
-export type CommandStatus = 'idle' | 'starting' | 'running' | 'stopped' | 'errored';
+export const CommandKind = {
+  SERVICE: 'service',
+  TASK: 'task',
+  TUNNEL: 'tunnel',
+  FUNCTION_HOST: 'function-host',
+} as const;
+export type CommandKind = (typeof CommandKind)[keyof typeof CommandKind];
+export const CommandKindSchema = z.enum(CommandKind);
 
-export interface CommandSpec {
-  readonly name: string;
-  readonly kind: CommandKind;
-  readonly command: string;
-  readonly directory?: string;
-  readonly environment?: Readonly<Record<string, string>>;
-  readonly autostart: boolean;
-  readonly link?: readonly string[];
-  readonly killable: boolean;
-}
+export const CommandStatus = {
+  IDLE: 'idle',
+  STARTING: 'starting',
+  RUNNING: 'running',
+  STOPPED: 'stopped',
+  ERRORED: 'errored',
+} as const;
+export type CommandStatus = (typeof CommandStatus)[keyof typeof CommandStatus];
+export const CommandStatusSchema = z.enum(CommandStatus);
 
-export interface CommandLastExit {
-  readonly code: number | null;
-  readonly signal: number | null;
-}
+export const CommandSpecSchema = z.object({
+  name: z.string(),
+  kind: CommandKindSchema,
+  command: z.string(),
+  directory: z.string().optional(),
+  environment: z.record(z.string(), z.string()).optional(),
+  autostart: z.boolean(),
+  link: z.array(z.string()).optional(),
+  killable: z.boolean(),
+});
+export type CommandSpec = z.infer<typeof CommandSpecSchema>;
 
-export interface Command {
-  readonly spec: CommandSpec;
-  readonly status: CommandStatus;
-  readonly lastExit?: CommandLastExit;
-  readonly startedAt?: number;
-}
+export const CommandLastExitSchema = z.object({
+  code: z.number().nullable(),
+  signal: z.number().nullable(),
+});
+export type CommandLastExit = z.infer<typeof CommandLastExitSchema>;
+
+export const CommandSchema = z.object({
+  spec: CommandSpecSchema,
+  status: CommandStatusSchema,
+  lastExit: CommandLastExitSchema.optional(),
+  startedAt: z.number().optional(),
+});
+export type Command = z.infer<typeof CommandSchema>;

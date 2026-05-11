@@ -16,114 +16,131 @@
  * stream parser does not throw on forward-compatible types.
  */
 
-export interface StackCommandEvent {
-  readonly type: 'project.StackCommandEvent';
-  readonly event: {
-    readonly App: string;
-    readonly Stage: string;
-    readonly Config: string;
-    readonly Command: string;
-    readonly Version: string;
-  };
-}
+import { z } from 'zod';
 
-export interface BuildSuccessEvent {
-  readonly type: 'project.BuildSuccessEvent';
-  readonly event: {
-    readonly Files: readonly string[];
-    readonly Hash: string;
-  };
-}
+export const StackCommandEventSchema = z.object({
+  type: z.literal('project.StackCommandEvent'),
+  event: z.object({
+    App: z.string(),
+    Stage: z.string(),
+    Config: z.string(),
+    Command: z.string(),
+    Version: z.string(),
+  }),
+});
+export type StackCommandEvent = z.infer<typeof StackCommandEventSchema>;
 
-export interface BuildFailedEvent {
-  readonly type: 'project.BuildFailedEvent';
-  readonly event: {
-    readonly Error: string;
-  };
-}
+export const BuildSuccessEventSchema = z.object({
+  type: z.literal('project.BuildSuccessEvent'),
+  event: z.object({
+    Files: z.array(z.string()),
+    Hash: z.string(),
+  }),
+});
+export type BuildSuccessEvent = z.infer<typeof BuildSuccessEventSchema>;
 
-export interface CompleteEventPayload {
-  readonly UpdateID: string;
-  readonly Errors: readonly {
-    readonly message: string;
-    readonly urn: string;
-    readonly help: readonly string[];
-  }[];
-  readonly Finished: boolean;
-  readonly Old: boolean;
-  readonly Hints?: Record<string, string>;
-  readonly Outputs?: Record<string, unknown>;
-  readonly Versions?: Record<string, number>;
-  readonly Links?: unknown;
-  readonly Devs?: unknown;
-  readonly Tasks?: unknown;
-  readonly Resources?: readonly unknown[];
-  readonly ImportDiffs?: Record<string, readonly unknown[]>;
-  readonly Tunnels?: unknown;
-}
+export const BuildFailedEventSchema = z.object({
+  type: z.literal('project.BuildFailedEvent'),
+  event: z.object({
+    Error: z.string(),
+  }),
+});
+export type BuildFailedEvent = z.infer<typeof BuildFailedEventSchema>;
 
-export interface CompleteEvent {
-  readonly type: 'project.CompleteEvent';
-  readonly event: CompleteEventPayload;
-}
+export const CompleteEventPayloadSchema = z.object({
+  UpdateID: z.string(),
+  Errors: z.array(
+    z.object({
+      message: z.string(),
+      urn: z.string(),
+      help: z.array(z.string()),
+    }),
+  ),
+  Finished: z.boolean(),
+  Old: z.boolean(),
+  Hints: z.record(z.string(), z.string()).optional(),
+  Outputs: z.record(z.string(), z.unknown()).optional(),
+  Versions: z.record(z.string(), z.number()).optional(),
+  Links: z.unknown().optional(),
+  Devs: z.unknown().optional(),
+  Tasks: z.unknown().optional(),
+  Resources: z.array(z.unknown()).optional(),
+  ImportDiffs: z.record(z.string(), z.array(z.unknown())).optional(),
+  Tunnels: z.unknown().optional(),
+});
+export type CompleteEventPayload = z.infer<typeof CompleteEventPayloadSchema>;
 
-export interface DeployRequestedEvent {
-  readonly type: 'deployer.DeployRequestedEvent';
-  readonly event: Record<string, never>;
-}
+export const CompleteEventSchema = z.object({
+  type: z.literal('project.CompleteEvent'),
+  event: CompleteEventPayloadSchema,
+});
+export type CompleteEvent = z.infer<typeof CompleteEventSchema>;
 
-export interface DeployFailedEvent {
-  readonly type: 'deployer.DeployFailedEvent';
-  readonly event: {
-    readonly Error: string;
-  };
-}
+const EmptyEventSchema = z.object({}).strict();
 
-export interface ConcurrentUpdateEvent {
-  readonly type: 'project.ConcurrentUpdateEvent';
-  readonly event: Record<string, never>;
-}
+export const DeployRequestedEventSchema = z.object({
+  type: z.literal('deployer.DeployRequestedEvent'),
+  event: EmptyEventSchema,
+});
+export type DeployRequestedEvent = z.infer<typeof DeployRequestedEventSchema>;
 
-export interface CancelledEvent {
-  readonly type: 'project.CancelledEvent';
-  readonly event: Record<string, never>;
-}
+export const DeployFailedEventSchema = z.object({
+  type: z.literal('deployer.DeployFailedEvent'),
+  event: z.object({ Error: z.string() }),
+});
+export type DeployFailedEvent = z.infer<typeof DeployFailedEventSchema>;
 
-export interface SkipEvent {
-  readonly type: 'project.SkipEvent';
-  readonly event: Record<string, never>;
-}
+export const ConcurrentUpdateEventSchema = z.object({
+  type: z.literal('project.ConcurrentUpdateEvent'),
+  event: EmptyEventSchema,
+});
+export type ConcurrentUpdateEvent = z.infer<typeof ConcurrentUpdateEventSchema>;
 
-export interface FileChangedEvent {
-  readonly type: 'watcher.FileChangedEvent';
-  readonly event: {
-    readonly Path: string;
-  };
-}
+export const CancelledEventSchema = z.object({
+  type: z.literal('project.CancelledEvent'),
+  event: EmptyEventSchema,
+});
+export type CancelledEvent = z.infer<typeof CancelledEventSchema>;
+
+export const SkipEventSchema = z.object({
+  type: z.literal('project.SkipEvent'),
+  event: EmptyEventSchema,
+});
+export type SkipEvent = z.infer<typeof SkipEventSchema>;
+
+export const FileChangedEventSchema = z.object({
+  type: z.literal('watcher.FileChangedEvent'),
+  event: z.object({ Path: z.string() }),
+});
+export type FileChangedEvent = z.infer<typeof FileChangedEventSchema>;
+
+export const SstBusEventSchema = z.discriminatedUnion('type', [
+  StackCommandEventSchema,
+  BuildSuccessEventSchema,
+  BuildFailedEventSchema,
+  CompleteEventSchema,
+  DeployRequestedEventSchema,
+  DeployFailedEventSchema,
+  ConcurrentUpdateEventSchema,
+  CancelledEventSchema,
+  SkipEventSchema,
+  FileChangedEventSchema,
+]);
+export type SstBusEvent = z.infer<typeof SstBusEventSchema>;
 
 /**
  * Catch-all for events the wire emits that this package does not (yet)
  * consume — e.g. AWS function/task events, Cloudflare worker events,
  * UI events. Keeps the parser tolerant of future SST additions.
  */
-export interface UnknownStreamMessage {
-  readonly type: string;
-  readonly event: unknown;
-}
+export const UnknownStreamMessageSchema = z.object({
+  type: z.string(),
+  event: z.unknown(),
+});
+export type UnknownStreamMessage = z.infer<typeof UnknownStreamMessageSchema>;
 
-export type SstBusEvent =
-  | StackCommandEvent
-  | BuildSuccessEvent
-  | BuildFailedEvent
-  | CompleteEvent
-  | DeployRequestedEvent
-  | DeployFailedEvent
-  | ConcurrentUpdateEvent
-  | CancelledEvent
-  | SkipEvent
-  | FileChangedEvent;
-
-export type StreamMessage = SstBusEvent | UnknownStreamMessage;
+export const StreamMessageSchema = z.union([SstBusEventSchema, UnknownStreamMessageSchema]);
+export type StreamMessage = z.infer<typeof StreamMessageSchema>;
 
 const KNOWN_TYPES: ReadonlySet<string> = new Set<SstBusEvent['type']>([
   'project.StackCommandEvent',

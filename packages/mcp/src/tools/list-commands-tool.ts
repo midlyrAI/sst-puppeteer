@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   ListCommandsInputSchema,
   type ListCommandsInput,
@@ -9,10 +9,9 @@ import {
 export class ListCommandsTool extends Tool<ListCommandsInput, ListCommandsOutput> {
   readonly name = 'list_commands';
   readonly description = 'List all dev commands registered for the session.';
-  readonly inputSchema = zodToToolInputSchema(ListCommandsInputSchema);
+  readonly inputSchema = ListCommandsInputSchema;
 
   async execute(session: SSTSession, _input: ListCommandsInput): Promise<ListCommandsOutput> {
-    const commands = session.listCommands();
-    return { commands };
+    return { commands: [...session.listCommands()] };
   }
 }

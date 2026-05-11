@@ -1,6 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { type SSTSession, runSst } from '@sst-puppeteer/core';
+import { toJSONSchema } from 'zod';
 import type { ToolRegistry } from './tools/registry.js';
 import { defaultRegistry } from './tools/index.js';
 import { type Transport, type StdioTransport } from './transport.js';
@@ -188,13 +189,24 @@ export class McpServer {
     );
 
     this._sdkServer.setRequestHandler(ListToolsRequestSchema, () => {
+      // Zod is the source of truth; convert to JSON Schema once at the wire
+      // boundary. `$schema` and root-level `additionalProperties` are noise
+      // for the MCP host and stripped here.
       return {
-        tools: this.registry.list().map((t) => ({
-          name: t.name,
-          description: t.description,
-          inputSchema: t.inputSchema,
-          ...(TOOL_ANNOTATIONS[t.name] ? { annotations: TOOL_ANNOTATIONS[t.name] } : {}),
-        })),
+        tools: this.registry.list().map((t) => {
+          const jsonSchema = toJSONSchema(t.inputSchema, { target: 'draft-7' }) as Record<
+            string,
+            unknown
+          >;
+          delete jsonSchema['$schema'];
+          delete jsonSchema['additionalProperties'];
+          return {
+            name: t.name,
+            description: t.description,
+            inputSchema: jsonSchema as { type: 'object'; properties?: Record<string, unknown> },
+            ...(TOOL_ANNOTATIONS[t.name] ? { annotations: TOOL_ANNOTATIONS[t.name] } : {}),
+          };
+        }),
       };
     });
 

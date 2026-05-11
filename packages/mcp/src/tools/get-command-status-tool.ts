@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   GetCommandStatusInputSchema,
   type GetCommandStatusInput,
@@ -9,7 +9,7 @@ import {
 export class GetCommandStatusTool extends Tool<GetCommandStatusInput, GetCommandStatusOutput> {
   readonly name = 'get_command_status';
   readonly description = 'Get the current status of a dev command by name.';
-  readonly inputSchema = zodToToolInputSchema(GetCommandStatusInputSchema);
+  readonly inputSchema = GetCommandStatusInputSchema;
 
   async execute(
     session: SSTSession,

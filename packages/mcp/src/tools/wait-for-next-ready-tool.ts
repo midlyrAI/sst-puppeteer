@@ -1,5 +1,5 @@
 import { type SSTSession } from '@sst-puppeteer/core';
-import { Tool, zodToToolInputSchema } from './tool.js';
+import { Tool } from './tool.js';
 import {
   WaitForNextReadyInputSchema,
   type WaitForNextReadyInput,
@@ -10,7 +10,7 @@ export class WaitForNextReadyTool extends Tool<WaitForNextReadyInput, WaitForNex
   readonly name = 'wait_for_next_ready';
   readonly description =
     'Block until the next deploy cycle (after a code edit) completes — ready or error.';
-  readonly inputSchema = zodToToolInputSchema(WaitForNextReadyInputSchema);
+  readonly inputSchema = WaitForNextReadyInputSchema;
 
   async execute(
     session: SSTSession,
