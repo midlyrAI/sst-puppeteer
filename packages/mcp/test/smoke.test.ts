@@ -22,7 +22,7 @@ describe('McpServer smoke', () => {
     const server = buildServer();
     expect(server).toBeInstanceOf(McpServer);
     expect(server.transport).toBeInstanceOf(MockTransport);
-    expect(server.registry.size()).toBe(11);
+    expect(server.registry.size()).toBe(12);
   });
 
   it('start() and stop() are functions on the instance', () => {

@@ -20,6 +20,7 @@ export {
   type ServerFileWatcherOptions,
 } from './infra/discovery/server-file-watcher.js';
 export { HttpEventStream, type HttpEventStreamOptions } from './infra/stream/http-event-stream.js';
+export { runSst, type RunSstOptions, type RunSstResult } from './infra/process/run-sst.js';
 export {
   PaneLogWatcher,
   type PaneLogWatcherOptions,

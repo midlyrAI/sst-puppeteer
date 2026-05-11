@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { Tool, TOOL_NAMES, defaultRegistry } from '../src/index.js';
 
 describe('mcp tool polymorphism', () => {
-  it('defaultRegistry registers exactly 11 tools', () => {
+  it('defaultRegistry registers exactly 12 tools', () => {
     const registry = defaultRegistry();
-    expect(registry.size()).toBe(11);
-    expect(registry.list().length).toBe(11);
+    expect(registry.size()).toBe(12);
+    expect(registry.list().length).toBe(12);
   });
 
   it('every registered tool is an instance of Tool', () => {

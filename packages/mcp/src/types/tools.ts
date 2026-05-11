@@ -17,6 +17,7 @@ export const TOOL_NAMES = [
   'read_command_logs',
   'wait_for_next_ready',
   'stop_session',
+  'run_sst',
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];
@@ -126,4 +127,21 @@ export interface SessionSummary {
 }
 export interface ListSessionsOutput {
   readonly sessions: readonly SessionSummary[];
+}
+
+export interface RunSstInput {
+  readonly projectDir: string;
+  readonly args: readonly string[];
+  readonly stage?: string;
+  readonly env?: Readonly<Record<string, string>>;
+  readonly timeoutMs?: number;
+  readonly sstCommand?: string;
+}
+export interface RunSstOutput {
+  readonly stdout: string;
+  readonly stderr: string;
+  readonly exitCode: number | null;
+  readonly signal: string | null;
+  readonly durationMs: number;
+  readonly timedOut: boolean;
 }

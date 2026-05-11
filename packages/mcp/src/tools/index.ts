@@ -10,6 +10,7 @@ import { StopCommandTool } from './stop-command-tool.js';
 import { ReadCommandLogsTool } from './read-command-logs-tool.js';
 import { WaitForNextReadyTool } from './wait-for-next-ready-tool.js';
 import { StopSessionTool } from './stop-session-tool.js';
+import { RunSstTool } from './run-sst-tool.js';
 
 export { TOOL_NAMES, type ToolName } from '../types/tools.js';
 export { Tool, type ToolInputSchema } from './tool.js';
@@ -25,6 +26,7 @@ export { StopCommandTool } from './stop-command-tool.js';
 export { ReadCommandLogsTool } from './read-command-logs-tool.js';
 export { WaitForNextReadyTool } from './wait-for-next-ready-tool.js';
 export { StopSessionTool } from './stop-session-tool.js';
+export { RunSstTool } from './run-sst-tool.js';
 
 export const defaultRegistry = (): ToolRegistry => {
   const registry = new ToolRegistry();
@@ -39,5 +41,6 @@ export const defaultRegistry = (): ToolRegistry => {
   registry.register(new ReadCommandLogsTool());
   registry.register(new WaitForNextReadyTool());
   registry.register(new StopSessionTool());
+  registry.register(new RunSstTool());
   return registry;
 };

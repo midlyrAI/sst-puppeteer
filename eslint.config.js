@@ -1,9 +1,11 @@
 import tseslint from 'typescript-eslint';
 
-// Shared pattern: native PTY / runtime imports allowed only in infra/pty/.
+// Shared pattern: native PTY / runtime imports allowed only in infra/pty/
+// (node-pty) and infra/process/ (child_process). Other infra/ siblings and
+// all of domain/ + common/ must stay free of these direct dependencies.
 const NATIVE_RUNTIME_BAN = {
   group: ['node-pty', 'node-pty/*', 'child_process', 'bun', 'bun:*'],
-  message: 'native PTY / runtime imports are restricted to infra/pty/.',
+  message: 'native PTY / runtime imports are restricted to infra/pty/ and infra/process/.',
 };
 
 export default tseslint.config(
@@ -155,7 +157,34 @@ export default tseslint.config(
           patterns: [
             // infra/pty IS the only place node-pty is allowed — no NATIVE_RUNTIME_BAN here.
             {
-              group: ['../stream/*', '../discovery/*', '../pane-log/*', '../config/*'],
+              group: [
+                '../stream/*',
+                '../discovery/*',
+                '../pane-log/*',
+                '../config/*',
+                '../process/*',
+              ],
+              message: 'infra/ siblings are independent — no cross-sibling imports.',
+            },
+            {
+              group: ['../../domain/*'],
+              message: 'infra/ may not import from domain/.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/core/src/infra/process/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            // infra/process IS the only place child_process is allowed — no NATIVE_RUNTIME_BAN here.
+            {
+              group: ['../pty/*', '../stream/*', '../discovery/*', '../pane-log/*', '../config/*'],
               message: 'infra/ siblings are independent — no cross-sibling imports.',
             },
             {
@@ -176,7 +205,7 @@ export default tseslint.config(
           patterns: [
             NATIVE_RUNTIME_BAN,
             {
-              group: ['../pty/*', '../discovery/*', '../pane-log/*', '../config/*'],
+              group: ['../pty/*', '../discovery/*', '../pane-log/*', '../config/*', '../process/*'],
               message: 'infra/ siblings are independent — no cross-sibling imports.',
             },
             {
@@ -197,7 +226,7 @@ export default tseslint.config(
           patterns: [
             NATIVE_RUNTIME_BAN,
             {
-              group: ['../pty/*', '../stream/*', '../pane-log/*', '../config/*'],
+              group: ['../pty/*', '../stream/*', '../pane-log/*', '../config/*', '../process/*'],
               message: 'infra/ siblings are independent — no cross-sibling imports.',
             },
             {
@@ -218,7 +247,7 @@ export default tseslint.config(
           patterns: [
             NATIVE_RUNTIME_BAN,
             {
-              group: ['../pty/*', '../stream/*', '../discovery/*', '../config/*'],
+              group: ['../pty/*', '../stream/*', '../discovery/*', '../config/*', '../process/*'],
               message: 'infra/ siblings are independent — no cross-sibling imports.',
             },
             {
@@ -239,7 +268,7 @@ export default tseslint.config(
           patterns: [
             NATIVE_RUNTIME_BAN,
             {
-              group: ['../pty/*', '../stream/*', '../discovery/*', '../pane-log/*'],
+              group: ['../pty/*', '../stream/*', '../discovery/*', '../pane-log/*', '../process/*'],
               message: 'infra/ siblings are independent — no cross-sibling imports.',
             },
             {

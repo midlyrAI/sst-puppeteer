@@ -1,6 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { type SSTSession, type CommandSpec } from '@sst-puppeteer/core';
+import { type SSTSession, type CommandSpec, runSst } from '@sst-puppeteer/core';
 import type { ToolRegistry } from './tools/registry.js';
 import { defaultRegistry } from './tools/index.js';
 import { type Transport, type StdioTransport } from './transport.js';
@@ -32,6 +32,9 @@ const TOOL_ANNOTATIONS: Record<
   restart_command: { destructiveHint: true, openWorldHint: true },
   stop_command: { destructiveHint: true },
   stop_session: { destructiveHint: true },
+  // run_sst is a passthrough — args may include `remove`, `unlock`, `secrets`,
+  // any of which mutate cloud state. Mark both destructive and open-world.
+  run_sst: { destructiveHint: true, openWorldHint: true },
 };
 
 export type SessionFactory = (opts: Omit<StartSessionInput, never>) => Promise<SSTSession>;
@@ -107,6 +110,40 @@ export class McpServer {
         });
         return {
           content: [{ type: 'text', text: JSON.stringify({ sessionId: session.id }) }],
+        };
+      }
+
+      if (name === 'run_sst') {
+        const projectDir = input['projectDir'] as string | undefined;
+        const args = input['args'] as readonly string[] | undefined;
+        if (!projectDir || !Array.isArray(args)) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  error: "run_sst requires 'projectDir' (string) and 'args' (string[]) inputs.",
+                }),
+              },
+            ],
+            isError: true,
+          };
+        }
+        const result = await runSst({
+          projectDir,
+          args,
+          stage: input['stage'] as string | undefined,
+          env: input['env'] as Readonly<Record<string, string>> | undefined,
+          timeoutMs: input['timeoutMs'] as number | undefined,
+          sstCommand: input['sstCommand'] as string | undefined,
+        });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ ...result, signal: result.signal ?? null }),
+            },
+          ],
         };
       }
 
