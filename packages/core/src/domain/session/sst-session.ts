@@ -417,9 +417,10 @@ export class SSTSession {
     return cmd.status;
   }
 
-  async startCommand(
-    name: string,
-  ): Promise<{ status: typeof CommandStatus.RUNNING; durationMs: number }> {
+  async startCommand(name: string): Promise<{
+    status: typeof CommandStatus.RUNNING | typeof CommandStatus.STOPPED;
+    durationMs: number;
+  }> {
     this._assertConnected();
 
     const cmd = this._commandRegistry.get(name);
@@ -446,9 +447,21 @@ export class SSTSession {
     // Optimistic status update
     this._commandRegistry.applyStatus(name, CommandStatus.STARTING);
 
-    await this._commandRegistry.waitForStatus(name, CommandStatus.RUNNING, 60_000);
+    // Wait for any terminal status. A run-to-completion task (e.g. a DB
+    // migration) may transition `starting → stopped` without ever observing
+    // `running`, so we accept `stopped` as a successful completion. `errored`
+    // is the only failure path.
+    const outcome = await this._commandRegistry.waitForAnyStatus(
+      name,
+      [CommandStatus.RUNNING, CommandStatus.STOPPED, CommandStatus.ERRORED],
+      60_000,
+    );
 
-    return { status: CommandStatus.RUNNING, durationMs: Date.now() - startedAt };
+    if (outcome === CommandStatus.ERRORED) {
+      throw new UpdateFailedError(`Command '${name}' errored during startup`);
+    }
+
+    return { status: outcome, durationMs: Date.now() - startedAt };
   }
 
   async stopCommand(name: string): Promise<{ status: typeof CommandStatus.STOPPED }> {
@@ -482,9 +495,10 @@ export class SSTSession {
     return { status: CommandStatus.STOPPED };
   }
 
-  async restartCommand(
-    name: string,
-  ): Promise<{ status: typeof CommandStatus.RUNNING; durationMs: number }> {
+  async restartCommand(name: string): Promise<{
+    status: typeof CommandStatus.RUNNING | typeof CommandStatus.STOPPED;
+    durationMs: number;
+  }> {
     this._assertConnected();
 
     const startedAt = Date.now();
@@ -497,9 +511,9 @@ export class SSTSession {
       await this.stopCommand(name);
     }
 
-    await this.startCommand(name);
+    const { status } = await this.startCommand(name);
 
-    return { status: CommandStatus.RUNNING, durationMs: Date.now() - startedAt };
+    return { status, durationMs: Date.now() - startedAt };
   }
 
   async readCommandLogs(opts: {

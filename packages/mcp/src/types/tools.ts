@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   CommandSchema,
   CommandSpecSchema,
+  CommandStatus,
   CommandStatusSchema,
   SessionStateSchema,
 } from '@sst-puppeteer/core';
@@ -143,20 +144,25 @@ export const GetCommandStatusOutputSchema = z.object({
 });
 export type GetCommandStatusOutput = z.infer<typeof GetCommandStatusOutputSchema>;
 
+// status: 'running' for long-lived services; 'stopped' when the command
+// is a run-to-completion task (e.g. a DB migration) that exited cleanly
+// before our state machine ever observed it as 'running'. Both are success.
+const StartedTerminalStatusSchema = z.enum([CommandStatus.RUNNING, CommandStatus.STOPPED]);
+
 export const StartCommandOutputSchema = z.object({
-  status: z.literal('running'),
+  status: StartedTerminalStatusSchema,
   durationMs: z.number(),
 });
 export type StartCommandOutput = z.infer<typeof StartCommandOutputSchema>;
 
 export const RestartCommandOutputSchema = z.object({
-  status: z.literal('running'),
+  status: StartedTerminalStatusSchema,
   durationMs: z.number(),
 });
 export type RestartCommandOutput = z.infer<typeof RestartCommandOutputSchema>;
 
 export const StopCommandOutputSchema = z.object({
-  status: z.literal('stopped'),
+  status: z.literal(CommandStatus.STOPPED),
 });
 export type StopCommandOutput = z.infer<typeof StopCommandOutputSchema>;
 
