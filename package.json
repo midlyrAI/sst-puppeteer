@@ -35,7 +35,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun build bin/mcp.ts --target=node --outfile=dist/bin/mcp.js --external=node-pty && bun build bin/cli.ts --target=node --outfile=dist/bin/cli.js --external=node-pty",
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/bin/*.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint bin src test",
     "lint:fix": "eslint bin src test --fix",
