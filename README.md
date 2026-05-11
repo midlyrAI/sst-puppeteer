@@ -26,6 +26,13 @@ To get parity an agent would have to drive the TUI itself: spawn a PTY, send key
 
 ## How to use
 
+Two concepts the tools operate on:
+
+- **Session** — one running `sst dev` process for a given `(projectDir, stage)`. Created by `start_session`, identified by a `sessionId`. The whole multiplexer, the event stream, the log directory — all scoped to one session.
+- **Command** — one pane *inside* a session, declared under `dev.command` in `sst.config.ts` (e.g. `api`, `web`, `worker`, `ngrok`). Identified by name within a session. `start_command` / `stop_command` / `restart_command` / `read_command_logs` act on these.
+
+So `list_sessions` tells you "which `sst dev`'s am I running?" and `list_commands` tells you "what panes does *this* `sst dev` have?".
+
 **1. Register the MCP server** from npm. Pick your host below.
 
 <details open>
