@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { SessionStateMachine } from '../../../src/domain/state/session-state-machine.js';
-import { UpdateFailedError } from '../../../src/common/error/errors.js';
-import type { StateChangeEvent } from '../../../src/domain/session/session-event.js';
+import { SessionStateMachine } from '../../../src/core/domain/state/session-state-machine.js';
+import { UpdateFailedError } from '../../../src/core/common/error/errors.js';
+import type { StateChangeEvent } from '../../../src/core/domain/session/session-event.js';
 
 function makeStateChange(
   from: StateChangeEvent['from'],

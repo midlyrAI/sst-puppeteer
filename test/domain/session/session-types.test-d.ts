@@ -1,6 +1,6 @@
 import { expectTypeOf } from 'expect-type';
 import { test } from 'vitest';
-import { type SessionEvent, type SessionOptions } from '../../../src/index.js';
+import { type SessionEvent, type SessionOptions } from '../../../src/core/index.js';
 
 test('SessionEvent is a discriminated union with the expected variants', () => {
   expectTypeOf<SessionEvent['type']>().toEqualTypeOf<

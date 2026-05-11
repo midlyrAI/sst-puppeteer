@@ -16,7 +16,7 @@ import {
   CommandNotRunningError,
   ConfigNotFoundError,
   StreamConnectionError,
-} from '../../../src/common/error/errors.js';
+} from '../../../src/core/common/error/errors.js';
 
 const CAUSE = new Error('root cause');
 

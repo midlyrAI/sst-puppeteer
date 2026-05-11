@@ -1,6 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { type SSTSession, runSst } from '../index.js';
+import { type SSTSession, runSst } from '../core/index.js';
 import { toJSONSchema } from 'zod';
 import type { ToolRegistry } from './tools/registry.js';
 import { defaultRegistry } from './tools/index.js';

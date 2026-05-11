@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../index.js';
+import { type SSTSession } from '../../core/index.js';
 import { Tool } from './tool.js';
 import { RunSstInputSchema, type RunSstInput, type RunSstOutput } from '../types/tools.js';
 

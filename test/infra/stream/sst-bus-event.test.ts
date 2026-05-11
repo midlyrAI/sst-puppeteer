@@ -3,7 +3,7 @@ import {
   isKnownStreamType,
   isSstBusEvent,
   type StreamMessage,
-} from '../../../src/infra/stream/sst-bus-event.js';
+} from '../../../src/core/infra/stream/sst-bus-event.js';
 
 describe('sst-bus-event', () => {
   it('isKnownStreamType identifies the canonical event types', () => {

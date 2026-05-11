@@ -7,7 +7,7 @@
  * `console.log` will corrupt the JSON-RPC stream and the host will drop
  * the connection.
  */
-import { SessionBuilder } from '../src/index.js';
+import { SessionBuilder } from '../src/core/index.js';
 import { createMcpServer, StdioTransport } from '../src/mcp/index.js';
 import { type SessionFactory } from '../src/mcp/server.js';
 

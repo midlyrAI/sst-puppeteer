@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { parseSstConfig } from '../../../src/infra/config/sst-config-parser.js';
-import { ConfigNotFoundError } from '../../../src/common/error/errors.js';
-import { type Logger } from '../../../src/common/logger/logger.js';
+import { parseSstConfig } from '../../../src/core/infra/config/sst-config-parser.js';
+import { ConfigNotFoundError } from '../../../src/core/common/error/errors.js';
+import { type Logger } from '../../../src/core/common/logger/logger.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

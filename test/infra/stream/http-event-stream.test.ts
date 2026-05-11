@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createServer, type Server } from 'node:http';
 import { type AddressInfo } from 'node:net';
-import { HttpEventStream } from '../../../src/infra/stream/http-event-stream.js';
-import { StreamConnectionError } from '../../../src/common/error/errors.js';
+import { HttpEventStream } from '../../../src/core/infra/stream/http-event-stream.js';
+import { StreamConnectionError } from '../../../src/core/common/error/errors.js';
 
 interface FakeEvent {
   readonly type: string;

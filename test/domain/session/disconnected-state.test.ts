@@ -21,7 +21,7 @@ import {
   type SstBusEvent,
   SSTSession,
   StreamConnectionError,
-} from '../../../src/index.js';
+} from '../../../src/core/index.js';
 import { FakeEventStream } from '../../helpers/fake-event-stream.js';
 
 class MockPty implements Pty {

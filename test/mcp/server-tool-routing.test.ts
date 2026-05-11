@@ -8,7 +8,7 @@ import {
   type PtySpawnOptions,
   type PtyUnsubscribe,
   SSTSession,
-} from '../../src/index.js';
+} from '../../src/core/index.js';
 import {
   type McpServer,
   Transport,

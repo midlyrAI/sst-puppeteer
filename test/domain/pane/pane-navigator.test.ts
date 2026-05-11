@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { PaneNavigator } from '../../../src/domain/pane/pane-navigator.js';
-import { CommandRegistry } from '../../../src/domain/command/command-registry.js';
-import { CommandNotFoundError } from '../../../src/common/error/errors.js';
-import { KEY } from '../../../src/common/keystroke/keystroke-encoder.js';
+import { PaneNavigator } from '../../../src/core/domain/pane/pane-navigator.js';
+import { CommandRegistry } from '../../../src/core/domain/command/command-registry.js';
+import { CommandNotFoundError } from '../../../src/core/common/error/errors.js';
+import { KEY } from '../../../src/core/common/keystroke/keystroke-encoder.js';
 import {
   type Pty,
   type PtyDataHandler,
   type PtyExitHandler,
   type PtySpawnOptions,
   type PtyUnsubscribe,
-} from '../../../src/infra/pty/node-pty-adapter.js';
-import { type CommandSpec } from '../../../src/common/contract/command.js';
+} from '../../../src/core/infra/pty/node-pty-adapter.js';
+import { type CommandSpec } from '../../../src/core/common/contract/command.js';
 
 // ---------------------------------------------------------------------------
 // Mock adapter — records every write() call

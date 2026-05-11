@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { SessionBuilder } from '../../../src/domain/session/session-builder.js';
-import { SSTSession } from '../../../src/domain/session/sst-session.js';
-import { type Pty } from '../../../src/infra/pty/node-pty-adapter.js';
+import { SessionBuilder } from '../../../src/core/domain/session/session-builder.js';
+import { SSTSession } from '../../../src/core/domain/session/sst-session.js';
+import { type Pty } from '../../../src/core/infra/pty/node-pty-adapter.js';
 import { FakeEventStream } from '../../helpers/fake-event-stream.js';
-import { type SstBusEvent } from '../../../src/infra/stream/sst-bus-event.js';
+import { type SstBusEvent } from '../../../src/core/infra/stream/sst-bus-event.js';
 
 const noopAdapter: Pty = {
   pid: 1,

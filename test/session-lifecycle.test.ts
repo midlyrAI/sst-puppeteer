@@ -23,7 +23,7 @@ import {
   SSTSession,
   type Pty,
   type SstBusEvent,
-} from '../src/index.js';
+} from '../src/core/index.js';
 import { FakeEventStream } from './helpers/fake-event-stream.js';
 
 // ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ function makeTempProjectDir(): string {
   return dir;
 }
 
-import type { SessionOptions } from '../src/domain/session/session-options.js';
+import type { SessionOptions } from '../src/core/domain/session/session-options.js';
 
 interface FakeRig {
   stream: FakeEventStream<SstBusEvent>;

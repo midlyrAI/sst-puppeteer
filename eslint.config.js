@@ -42,7 +42,7 @@ export default tseslint.config(
 
   // ----- common/ siblings: leaf-of-leaf, no cross-imports anywhere. ----------
   {
-    files: ['src/common/error/**/*.ts'],
+    files: ['src/core/common/error/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -63,7 +63,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/common/logger/**/*.ts'],
+    files: ['src/core/common/logger/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -84,7 +84,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/common/keystroke/**/*.ts'],
+    files: ['src/core/common/keystroke/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -105,7 +105,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/common/ansi/**/*.ts'],
+    files: ['src/core/common/ansi/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -126,7 +126,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/common/contract/**/*.ts'],
+    files: ['src/core/common/contract/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -149,7 +149,7 @@ export default tseslint.config(
 
   // ----- infra/ siblings: independent + no imports from domain/. -------------
   {
-    files: ['src/infra/pty/**/*.ts'],
+    files: ['src/core/infra/pty/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -176,7 +176,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/infra/process/**/*.ts'],
+    files: ['src/core/infra/process/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -197,7 +197,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/infra/stream/**/*.ts'],
+    files: ['src/core/infra/stream/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -218,7 +218,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/infra/discovery/**/*.ts'],
+    files: ['src/core/infra/discovery/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -239,7 +239,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/infra/pane-log/**/*.ts'],
+    files: ['src/core/infra/pane-log/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -260,7 +260,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/infra/config/**/*.ts'],
+    files: ['src/core/infra/config/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -283,7 +283,7 @@ export default tseslint.config(
 
   // ----- domain/ DAG: session → pane → command → state. ---------------------
   {
-    files: ['src/domain/session/**/*.ts'],
+    files: ['src/core/domain/session/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -294,7 +294,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/domain/pane/**/*.ts'],
+    files: ['src/core/domain/pane/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -311,7 +311,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/domain/command/**/*.ts'],
+    files: ['src/core/domain/command/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -328,7 +328,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/domain/state/**/*.ts'],
+    files: ['src/core/domain/state/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { KEY } from '../../../src/common/keystroke/keystroke-encoder.js';
+import { KEY } from '../../../src/core/common/keystroke/keystroke-encoder.js';
 
 describe('KEY — keystroke encoder byte values', () => {
   it('arrowDown is ESC [ B', () => {

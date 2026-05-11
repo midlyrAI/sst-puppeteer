@@ -5,7 +5,7 @@ import {
   CommandStatus,
   CommandStatusSchema,
   SessionStateSchema,
-} from '../../index.js';
+} from '../../core/index.js';
 
 export const TOOL_NAMES = [
   'start_session',

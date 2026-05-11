@@ -6,7 +6,7 @@ import {
   PaneLogWatcher,
   type StartedEvent,
   type StoppedEvent,
-} from '../../../src/infra/pane-log/pane-log-watcher.js';
+} from '../../../src/core/infra/pane-log/pane-log-watcher.js';
 
 function wait(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));

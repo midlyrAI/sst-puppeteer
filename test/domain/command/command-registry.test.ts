@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CommandRegistry } from '../../../src/domain/command/command-registry.js';
-import { CommandNotFoundError } from '../../../src/common/error/errors.js';
-import { type CommandSpec } from '../../../src/common/contract/command.js';
+import { CommandRegistry } from '../../../src/core/domain/command/command-registry.js';
+import { CommandNotFoundError } from '../../../src/core/common/error/errors.js';
+import { type CommandSpec } from '../../../src/core/common/contract/command.js';
 
 function makeSpec(name: string, overrides?: Partial<CommandSpec>): CommandSpec {
   return {

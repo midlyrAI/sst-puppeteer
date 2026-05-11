@@ -1,4 +1,4 @@
-import { SstPuppeteerError } from '../index.js';
+import { SstPuppeteerError } from '../core/index.js';
 import { type CliContext } from './commands/command.js';
 import { type CommandRegistry } from './commands/registry.js';
 

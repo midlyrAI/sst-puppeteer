@@ -4,7 +4,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 import * as http from 'node:http';
-import { ServerFileWatcher } from '../../../src/infra/discovery/server-file-watcher.js';
+import { ServerFileWatcher } from '../../../src/core/infra/discovery/server-file-watcher.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

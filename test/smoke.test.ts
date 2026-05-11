@@ -7,7 +7,7 @@ import {
   type PtyUnsubscribe,
   CommandNotFoundError,
   SSTSession,
-} from '../src/index.js';
+} from '../src/core/index.js';
 
 class MockPty implements Pty {
   readonly pid: number | null = null;
