@@ -29,14 +29,21 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
 
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Build
-        run: pnpm -r build
+        run: pnpm build
 
       - name: Lint
-        run: pnpm -r lint
+        run: pnpm lint
 
       - name: Format check
         run: pnpm format:check
