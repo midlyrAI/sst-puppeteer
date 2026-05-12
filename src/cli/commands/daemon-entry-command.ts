@@ -58,8 +58,11 @@ export class DaemonEntryCommand extends Command {
       adapter: this._adapterFactory(),
     }).build();
 
-    await session.start();
-
+    // Start the IPC server BEFORE awaiting session.start(). The daemon's
+    // "ready" handshake means "IPC listening, you can call wait_for_ready",
+    // NOT "SST deploy complete" — those can be many minutes apart. Driving
+    // session.start() in the background lets short CLI invocations like
+    // `start --no-wait` return immediately while the deploy proceeds.
     const sockPath = socketPathFn(sessionId);
     const server = new IpcServer(session, sockPath);
     await server.start();
@@ -92,6 +95,20 @@ export class DaemonEntryCommand extends Command {
 
     process.on('SIGTERM', () => void finish(0));
     process.on('SIGINT', () => void finish(0));
+
+    // Drive session.start() in the background so the daemon's "ready" can fire
+    // before SST's deploy completes. On failure, exit so callers see pid-dead.
+    void session.start().catch((err: unknown) => {
+      const e = err instanceof Error ? err : new Error(String(err));
+      ctx.stderr.write(
+        JSON.stringify({
+          error: 'session.start() failed',
+          message: e.message,
+          stack: e.stack,
+        }) + '\n',
+      );
+      void finish(1);
+    });
     process.on('disconnect', () => {
       // no-op: parent detached intentionally
     });

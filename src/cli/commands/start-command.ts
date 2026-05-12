@@ -33,6 +33,35 @@ const dedupKey = (projectDir: string, stage: string): string =>
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Walk up from projectDir collecting every existing `node_modules/.bin`
+ * directory until the filesystem root. Mirrors npm/pnpm shell-script behavior
+ * so locally-installed binaries like `sst` resolve inside the daemon's PTY.
+ */
+export const collectNodeModulesBins = (projectDir: string): string[] => {
+  const bins: string[] = [];
+  let dir = path.resolve(projectDir);
+  while (true) {
+    const candidate = path.join(dir, 'node_modules', '.bin');
+    try {
+      if (fs.statSync(candidate).isDirectory()) bins.push(candidate);
+    } catch {
+      // not present at this level
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return bins;
+};
+
+const augmentPath = (projectDir: string, basePath: string | undefined): string => {
+  const bins = collectNodeModulesBins(projectDir);
+  const parts = [...bins];
+  if (basePath !== undefined && basePath.length > 0) parts.push(basePath);
+  return parts.join(path.delimiter);
+};
+
 export class StartCommand extends Command {
   readonly name = 'start';
   readonly description = 'Spawn a session daemon for a project + stage.';
@@ -211,6 +240,7 @@ export class StartCommand extends Command {
 
       // Step 8: spawn
       const env: NodeJS.ProcessEnv = {};
+      env['PATH'] = augmentPath(projectDir, process.env['PATH']);
       if (awsProfile !== undefined) env['AWS_PROFILE'] = awsProfile;
       if (awsRegion !== undefined) env['AWS_REGION'] = awsRegion;
       const { pid, startTimeMs } = await this._spawnDaemon({
