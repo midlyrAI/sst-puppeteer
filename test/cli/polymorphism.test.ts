@@ -4,9 +4,13 @@ import { Command, defaultRegistry } from '../../src/cli/index.js';
 describe('cli command polymorphism', () => {
   it('defaultRegistry registers the expected commands', () => {
     const registry = defaultRegistry();
-    expect(registry.size()).toBe(5);
+    expect(registry.size()).toBe(10);
     const names = registry.names();
-    for (const expected of ['version', 'start', 'stop', 'list', '__daemon']) {
+    for (const expected of [
+      'version', 'start', 'stop', 'list', '__daemon',
+      'wait-for-ready', 'wait-for-next-ready', 'list-commands',
+      'get-command-status', 'read-command-logs',
+    ]) {
       expect(names).toContain(expected);
     }
   });
@@ -21,7 +25,7 @@ describe('cli command polymorphism', () => {
   it('hidden commands are excluded from non-hidden listing', () => {
     const registry = defaultRegistry();
     const visible = registry.list().filter((c) => !c.hidden);
-    expect(visible).toHaveLength(4);
+    expect(visible).toHaveLength(9);
     expect(visible.find((c) => c.name === '__daemon')).toBeUndefined();
   });
 });
