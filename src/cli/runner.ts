@@ -38,10 +38,24 @@ export class CliRunner {
   }
 
   private _writeUsage(registry: CommandRegistry, ctx: CliContext): void {
-    ctx.stderr.write('Usage: sst-puppeteer <command> [args]\n\nCommands:\n');
+    ctx.stderr.write(
+      'sst-puppeteer — drive `sst dev` (SST’s interactive TUI) from a stateless CLI.\n\n' +
+        'Manages a per-session daemon that hosts the `sst dev` PTY between commands,\n' +
+        'so you can restart individual panes, tail per-pane logs, and wait for\n' +
+        'redeploys — the full TUI surface — without sitting at a terminal.\n\n' +
+        'Usage: sst-puppeteer <command> [args]\n' +
+        'Run `sst-puppeteer <command> --help` for command-specific options.\n\n' +
+        'Commands:\n',
+    );
+    let maxNameLen = 0;
     for (const cmd of registry.list()) {
       if (cmd.hidden) continue;
-      ctx.stderr.write(`  ${cmd.name.padEnd(12)} ${cmd.description}\n`);
+      if (cmd.name.length > maxNameLen) maxNameLen = cmd.name.length;
+    }
+    const pad = Math.max(maxNameLen + 2, 14);
+    for (const cmd of registry.list()) {
+      if (cmd.hidden) continue;
+      ctx.stderr.write(`  ${cmd.name.padEnd(pad)} ${cmd.description}\n`);
     }
   }
 }
