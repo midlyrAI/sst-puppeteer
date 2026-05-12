@@ -66,13 +66,30 @@ export class StopCommand extends Command {
     }
 
     if (parsed.values['help-json'] === true) {
+      const schema = this.helpSchema();
       ctx.stdout.write(
-        JSON.stringify({ name: this.name, description: this.description }) + '\n',
+        JSON.stringify({
+          name: this.name,
+          description: this.description,
+          input: schema.input._def,
+          output: schema.output._def,
+        }) + '\n',
       );
       return 0;
     }
     if (parsed.values['help'] === true) {
-      ctx.stdout.write('Usage: sst-puppeteer stop [--session ID | --project DIR --stage S]\n');
+      ctx.stdout.write(
+        [
+          'Usage: sst-puppeteer stop [--session ID | --project DIR --stage S]',
+          '',
+          'Stop the daemon for a session and clean up its state directory.',
+          'If no session flag is given and exactly one session is running, it is used implicitly.',
+          '',
+          'Example:',
+          '  sst-puppeteer stop --session <sessionId>',
+          '  sst-puppeteer stop --project ./my-app --stage dev',
+        ].join('\n') + '\n',
+      );
       return 0;
     }
 

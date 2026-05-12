@@ -56,11 +56,30 @@ export class ListSessionsCommand extends Command {
     }
 
     if (parsed.values['help-json'] === true) {
-      ctx.stdout.write(JSON.stringify({ name: this.name, description: this.description }) + '\n');
+      const schema = this.helpSchema();
+      ctx.stdout.write(
+        JSON.stringify({
+          name: this.name,
+          description: this.description,
+          input: schema.input._def,
+          output: schema.output._def,
+        }) + '\n',
+      );
       return 0;
     }
     if (parsed.values['help'] === true) {
-      ctx.stdout.write('Usage: sst-puppeteer list [--pretty]\n');
+      ctx.stdout.write(
+        [
+          'Usage: sst-puppeteer list [--pretty]',
+          '',
+          'List all known sessions with their liveness status.',
+          'Stale sessions (daemon no longer running) are cleaned up automatically.',
+          '',
+          'Example:',
+          '  sst-puppeteer list',
+          '  sst-puppeteer list --pretty',
+        ].join('\n') + '\n',
+      );
       return 0;
     }
     const pretty = parsed.values['pretty'] === true;

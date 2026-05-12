@@ -85,14 +85,29 @@ export class StartCommand extends Command {
     }
 
     if (parsed.values['help-json'] === true) {
+      const schema = this.helpSchema();
       ctx.stdout.write(
-        JSON.stringify({ name: this.name, description: this.description }) + '\n',
+        JSON.stringify({
+          name: this.name,
+          description: this.description,
+          input: schema.input._def,
+          output: schema.output._def,
+        }) + '\n',
       );
       return 0;
     }
     if (parsed.values['help'] === true) {
       ctx.stdout.write(
-        'Usage: sst-puppeteer start <projectDir> [--stage S] [--no-wait]\n',
+        [
+          'Usage: sst-puppeteer start <projectDir> [--stage S] [--no-wait] [--aws-profile P] [--aws-region R]',
+          '',
+          'Spawn a session daemon for a project + stage. By default waits until the SST dev',
+          'server reports ready before returning. Use --no-wait to return immediately after fork.',
+          '',
+          'Example:',
+          '  sst-puppeteer start ./my-app --stage dev',
+          '  sst-puppeteer start ./my-app --stage prod --no-wait',
+        ].join('\n') + '\n',
       );
       return 0;
     }
