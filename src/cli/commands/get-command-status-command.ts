@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { GetCommandStatusOutputSchema } from '../../core/index.js';
+import { CliGetCommandStatusOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -25,7 +25,7 @@ export class GetCommandStatusCommand extends Command {
         'command-name': z.string().describe('Name of the command to query (required)'),
         pretty: z.boolean().optional(),
       }),
-      output: GetCommandStatusOutputSchema,
+      output: CliGetCommandStatusOutputSchema,
     };
   }
 
@@ -112,7 +112,7 @@ export class GetCommandStatusCommand extends Command {
     const { client } = resolved;
     try {
       const raw = await client.call('get_command_status', { commandName });
-      const result = GetCommandStatusOutputSchema.parse(raw);
+      const result = CliGetCommandStatusOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {

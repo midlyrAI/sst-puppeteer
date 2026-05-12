@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { ReadCommandLogsOutputSchema } from '../../core/index.js';
+import { CliReadCommandLogsOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -30,7 +30,7 @@ export class ReadCommandLogsCommand extends Command {
           .describe('Return only lines after this epoch-ms timestamp (forward-compat; ignored by core today)'),
         pretty: z.boolean().optional(),
       }),
-      output: ReadCommandLogsOutputSchema,
+      output: CliReadCommandLogsOutputSchema,
     };
   }
 
@@ -128,7 +128,7 @@ export class ReadCommandLogsCommand extends Command {
         ...(limit !== undefined ? { limit } : {}),
         ...(since !== undefined ? { since } : {}),
       });
-      const result = ReadCommandLogsOutputSchema.parse(raw);
+      const result = CliReadCommandLogsOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {

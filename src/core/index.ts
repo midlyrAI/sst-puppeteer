@@ -94,6 +94,3 @@ export {
 // Orchestration.
 export { SSTSession } from './domain/session/sst-session.js';
 export { SessionBuilder } from './domain/session/session-builder.js';
-
-// Tool contract schemas (shared between MCP server and CLI).
-export * from './contract/tool-schemas.js';

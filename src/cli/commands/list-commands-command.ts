@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { ListCommandsOutputSchema } from '../../core/index.js';
+import { CliListCommandsOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -24,7 +24,7 @@ export class ListCommandsCommand extends Command {
         stage: z.string().optional(),
         pretty: z.boolean().optional(),
       }),
-      output: ListCommandsOutputSchema,
+      output: CliListCommandsOutputSchema,
     };
   }
 
@@ -104,7 +104,7 @@ export class ListCommandsCommand extends Command {
     const { client } = resolved;
     try {
       const raw = await client.call('list_commands', {});
-      const result = ListCommandsOutputSchema.parse(raw);
+      const result = CliListCommandsOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {

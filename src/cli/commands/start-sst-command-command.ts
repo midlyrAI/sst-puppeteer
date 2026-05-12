@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { StartCommandOutputSchema } from '../../core/index.js';
+import { CliStartCommandOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -25,7 +25,7 @@ export class StartSstCommandCommand extends Command {
         'command-name': z.string().describe('Name of the command to start (required)'),
         pretty: z.boolean().optional(),
       }),
-      output: StartCommandOutputSchema,
+      output: CliStartCommandOutputSchema,
     };
   }
 
@@ -112,7 +112,7 @@ export class StartSstCommandCommand extends Command {
     const { client } = resolved;
     try {
       const raw = await client.call('start_command', { commandName });
-      const result = StartCommandOutputSchema.parse(raw);
+      const result = CliStartCommandOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {

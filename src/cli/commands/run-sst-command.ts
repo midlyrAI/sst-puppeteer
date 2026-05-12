@@ -1,7 +1,8 @@
 import * as path from 'node:path';
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { runSst, RunSstOutputSchema } from '../../core/index.js';
+import { runSst } from '../../core/index.js';
+import { CliRunSstOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import { Command, type CliContext, type HelpSchema } from './command.js';
@@ -18,7 +19,7 @@ export class RunSstCommand extends Command {
         timeout: z.number().optional().describe('Timeout in milliseconds'),
         pretty: z.boolean().optional(),
       }),
-      output: RunSstOutputSchema,
+      output: CliRunSstOutputSchema,
     };
   }
 

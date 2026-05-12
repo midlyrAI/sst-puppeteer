@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { WaitForReadyOutputSchema } from '../../core/index.js';
+import { CliWaitForReadyOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -25,7 +25,7 @@ export class WaitForReadyCommand extends Command {
         timeout: z.number().optional().describe('Timeout in milliseconds (default 300000)'),
         pretty: z.boolean().optional(),
       }),
-      output: WaitForReadyOutputSchema,
+      output: CliWaitForReadyOutputSchema,
     };
   }
 
@@ -108,7 +108,7 @@ export class WaitForReadyCommand extends Command {
     const { client } = resolved;
     try {
       const raw = await client.call('wait_for_ready', { timeoutMs });
-      const result = WaitForReadyOutputSchema.parse(raw);
+      const result = CliWaitForReadyOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {

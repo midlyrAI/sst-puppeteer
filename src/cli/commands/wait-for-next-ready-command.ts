@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { WaitForNextReadyOutputSchema } from '../../core/index.js';
+import { CliWaitForNextReadyOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -27,7 +27,7 @@ export class WaitForNextReadyCommand extends Command {
         'command-name': z.string().optional().describe('Filter to a specific command name'),
         pretty: z.boolean().optional(),
       }),
-      output: WaitForNextReadyOutputSchema,
+      output: CliWaitForNextReadyOutputSchema,
     };
   }
 
@@ -115,7 +115,7 @@ export class WaitForNextReadyCommand extends Command {
         timeoutMs,
         ...(commandName !== undefined ? { commandName } : {}),
       });
-      const result = WaitForNextReadyOutputSchema.parse(raw);
+      const result = CliWaitForNextReadyOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {

@@ -3,18 +3,20 @@ import {
   CommandAlreadyRunningError,
   CommandNotFoundError,
   CommandNotRunningError,
-  GetCommandStatusInputSchema,
-  ListCommandsInputSchema,
-  ReadCommandLogsInputSchema,
-  RestartCommandInputSchema,
-  StartCommandInputSchema,
-  StopCommandInputSchema,
-  StopSessionInputSchema,
   StreamConnectionError,
   UpdateFailedError,
-  WaitForNextReadyInputSchema,
-  WaitForReadyInputSchema,
 } from '../../core/index.js';
+import {
+  DaemonGetCommandStatusParamsSchema,
+  DaemonListCommandsParamsSchema,
+  DaemonReadCommandLogsParamsSchema,
+  DaemonRestartCommandParamsSchema,
+  DaemonStartCommandParamsSchema,
+  DaemonStopCommandParamsSchema,
+  DaemonStopSessionParamsSchema,
+  DaemonWaitForNextReadyParamsSchema,
+  DaemonWaitForReadyParamsSchema,
+} from './wire-schemas.js';
 
 export const IpcMethodSchema = z.enum([
   'wait_for_ready',
@@ -64,23 +66,6 @@ export const WireErrorCodeSchema = z.enum([
   'INTERNAL',
 ]);
 export type WireErrorCode = z.infer<typeof WireErrorCodeSchema>;
-
-// Per-method daemon param schemas (sessionId stripped — implicit).
-export const DaemonWaitForReadyParamsSchema = WaitForReadyInputSchema.omit({ sessionId: true });
-export const DaemonWaitForNextReadyParamsSchema = WaitForNextReadyInputSchema.omit({
-  sessionId: true,
-});
-export const DaemonListCommandsParamsSchema = ListCommandsInputSchema.omit({ sessionId: true });
-export const DaemonGetCommandStatusParamsSchema = GetCommandStatusInputSchema.omit({
-  sessionId: true,
-});
-export const DaemonStartCommandParamsSchema = StartCommandInputSchema.omit({ sessionId: true });
-export const DaemonStopCommandParamsSchema = StopCommandInputSchema.omit({ sessionId: true });
-export const DaemonRestartCommandParamsSchema = RestartCommandInputSchema.omit({ sessionId: true });
-export const DaemonReadCommandLogsParamsSchema = ReadCommandLogsInputSchema.omit({
-  sessionId: true,
-});
-export const DaemonStopSessionParamsSchema = StopSessionInputSchema.omit({ sessionId: true });
 
 export const daemonParamsSchemaFor = (method: IpcMethod): z.ZodType => {
   switch (method) {

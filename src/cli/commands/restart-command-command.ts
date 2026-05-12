@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { RestartCommandOutputSchema } from '../../core/index.js';
+import { CliRestartCommandOutputSchema } from '../daemon/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
@@ -25,7 +25,7 @@ export class RestartCommandCommand extends Command {
         'command-name': z.string().describe('Name of the command to restart (required)'),
         pretty: z.boolean().optional(),
       }),
-      output: RestartCommandOutputSchema,
+      output: CliRestartCommandOutputSchema,
     };
   }
 
@@ -112,7 +112,7 @@ export class RestartCommandCommand extends Command {
     const { client } = resolved;
     try {
       const raw = await client.call('restart_command', { commandName });
-      const result = RestartCommandOutputSchema.parse(raw);
+      const result = CliRestartCommandOutputSchema.parse(raw);
       ctx.stdout.write(formatOutput(result, { pretty }) + '\n');
       return EXIT_OK;
     } catch (err) {
