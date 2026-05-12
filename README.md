@@ -39,7 +39,7 @@ So `list_sessions` tells you "which `sst dev`'s am I running?" and `list_command
 <summary><strong>Claude Code</strong></summary>
 
 ```sh
-claude mcp add sst-puppeteer -s user -- npx -y @sst-puppeteer/mcp
+claude mcp add sst-puppeteer -s user -- npx -y @midlyr/sst-puppeteer-mcp
 ```
 
 </details>
@@ -54,7 +54,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
   "mcpServers": {
     "sst-puppeteer": {
       "command": "npx",
-      "args": ["-y", "@sst-puppeteer/mcp"]
+      "args": ["-y", "@midlyr/sst-puppeteer-mcp"]
     }
   }
 }
@@ -72,7 +72,7 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per-project):
   "mcpServers": {
     "sst-puppeteer": {
       "command": "npx",
-      "args": ["-y", "@sst-puppeteer/mcp"]
+      "args": ["-y", "@midlyr/sst-puppeteer-mcp"]
     }
   }
 }
@@ -90,7 +90,7 @@ Edit `~/.codeium/windsurf/mcp_config.json`:
   "mcpServers": {
     "sst-puppeteer": {
       "command": "npx",
-      "args": ["-y", "@sst-puppeteer/mcp"]
+      "args": ["-y", "@midlyr/sst-puppeteer-mcp"]
     }
   }
 }
@@ -109,7 +109,7 @@ Add to `~/.config/zed/settings.json` under `context_servers`:
     "sst-puppeteer": {
       "command": {
         "path": "npx",
-        "args": ["-y", "@sst-puppeteer/mcp"]
+        "args": ["-y", "@midlyr/sst-puppeteer-mcp"]
       }
     }
   }
@@ -122,7 +122,7 @@ Add to `~/.config/zed/settings.json` under `context_servers`:
 <summary><strong>Codex CLI</strong></summary>
 
 ```sh
-codex mcp add sst-puppeteer -- npx -y @sst-puppeteer/mcp
+codex mcp add sst-puppeteer -- npx -y @midlyr/sst-puppeteer-mcp
 ```
 
 </details>
