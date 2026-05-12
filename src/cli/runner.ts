@@ -40,6 +40,7 @@ export class CliRunner {
   private _writeUsage(registry: CommandRegistry, ctx: CliContext): void {
     ctx.stderr.write('Usage: sst-puppeteer <command> [args]\n\nCommands:\n');
     for (const cmd of registry.list()) {
+      if (cmd.hidden) continue;
       ctx.stderr.write(`  ${cmd.name.padEnd(12)} ${cmd.description}\n`);
     }
   }
