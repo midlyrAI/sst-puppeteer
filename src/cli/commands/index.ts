@@ -4,8 +4,12 @@ import { ListCommandsCommand } from './list-commands-command.js';
 import { ListSessionsCommand } from './list-sessions-command.js';
 import { ReadCommandLogsCommand } from './read-command-logs-command.js';
 import { CommandRegistry } from './registry.js';
+import { RestartCommandCommand } from './restart-command-command.js';
+import { RunSstCommand } from './run-sst-command.js';
 import { StartCommand } from './start-command.js';
+import { StartSstCommandCommand } from './start-sst-command-command.js';
 import { StopCommand } from './stop-command.js';
+import { StopSstCommandCommand } from './stop-sst-command-command.js';
 import { VersionCommand } from './version-command.js';
 import { WaitForNextReadyCommand } from './wait-for-next-ready-command.js';
 import { WaitForReadyCommand } from './wait-for-ready-command.js';
@@ -22,6 +26,10 @@ export { WaitForNextReadyCommand } from './wait-for-next-ready-command.js';
 export { ListCommandsCommand } from './list-commands-command.js';
 export { GetCommandStatusCommand } from './get-command-status-command.js';
 export { ReadCommandLogsCommand } from './read-command-logs-command.js';
+export { StartSstCommandCommand } from './start-sst-command-command.js';
+export { StopSstCommandCommand } from './stop-sst-command-command.js';
+export { RestartCommandCommand } from './restart-command-command.js';
+export { RunSstCommand } from './run-sst-command.js';
 
 export const defaultRegistry = (): CommandRegistry => {
   const registry = new CommandRegistry();
@@ -34,6 +42,10 @@ export const defaultRegistry = (): CommandRegistry => {
   registry.register(new ListCommandsCommand());
   registry.register(new GetCommandStatusCommand());
   registry.register(new ReadCommandLogsCommand());
+  registry.register(new StartSstCommandCommand());
+  registry.register(new StopSstCommandCommand());
+  registry.register(new RestartCommandCommand());
+  registry.register(new RunSstCommand());
   registry.register(new DaemonEntryCommand());
   return registry;
 };
