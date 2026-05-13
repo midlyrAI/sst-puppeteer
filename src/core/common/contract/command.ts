@@ -23,10 +23,10 @@ export const CommandSpecSchema = z.object({
   name: z.string(),
   kind: CommandKindSchema,
   command: z.string(),
-  directory: z.string().optional(),
-  environment: z.record(z.string(), z.string()).optional(),
+  directory: z.string().nullish(),
+  environment: z.record(z.string(), z.string()).nullish(),
   autostart: z.boolean(),
-  link: z.array(z.string()).optional(),
+  link: z.array(z.string()).nullish(),
   killable: z.boolean(),
 });
 export type CommandSpec = z.infer<typeof CommandSpecSchema>;

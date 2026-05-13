@@ -184,8 +184,40 @@ export class McpServer {
     this._started = true;
 
     this._sdkServer = new Server(
-      { name: 'sst-puppeteer-mcp', version: '0.1.0' },
-      { capabilities: { tools: {} } },
+      {
+        name: 'sst-puppeteer-mcp',
+        version: '0.1.0',
+        description:
+          'Drive `sst dev` (SST’s interactive TUI) from an AI agent. Gives you per-pane ' +
+          'restart, /stream deploy events, log tail, and redeploy waits — the full TUI ' +
+          'surface, headless. Plus `run_sst` for one-shot SST subcommands (deploy, secrets, ' +
+          'unlock…).',
+      },
+      {
+        capabilities: { tools: {} },
+        instructions:
+          'You have tools to control `sst dev` — SST’s interactive TUI — without ' +
+          'needing a terminal.\n\n' +
+          'Concepts:\n' +
+          '• Session: one running `sst dev` process for a `(projectDir, stage)` pair. ' +
+          'Create with `start_session`, stop with `stop_session`.\n' +
+          '• Command (pane): one entry under `dev.command` in `sst.config.ts` ' +
+          '(e.g. `api`, `web`, `worker`). Control with `start_command` / `stop_command` / ' +
+          '`restart_command`.\n\n' +
+          'Typical flow:\n' +
+          '1. `start_session({projectDir, stage})` → returns `sessionId`.\n' +
+          '2. `wait_for_ready({sessionId})` blocks until the initial deploy completes.\n' +
+          '3. `list_commands({sessionId})` shows the panes; `read_command_logs` tails one.\n' +
+          '4. After an edit triggers a redeploy, `wait_for_next_ready({sessionId})` blocks ' +
+          'until the next ready transition.\n' +
+          '5. `restart_command({sessionId, commandName})` cycles a single pane without ' +
+          'tearing down the whole session.\n' +
+          '6. `stop_session({sessionId})` shuts it all down.\n\n' +
+          'For one-shot subcommands (`deploy`, `remove`, `secrets`, `unlock`, …) use ' +
+          '`run_sst` — no session required, no TUI involved.\n\n' +
+          'Pass `sessionId` from `start_session` to every session-scoped tool. Sessions are ' +
+          'in-memory only and do not survive an MCP server restart.',
+      },
     );
 
     this._sdkServer.setRequestHandler(ListToolsRequestSchema, () => {

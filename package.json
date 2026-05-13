@@ -42,6 +42,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "cli": "node dist/bin/cli.js",
+    "cli:dev": "tsx bin/cli.ts",
+    "mcp": "node dist/bin/mcp.js",
+    "mcp:dev": "tsx bin/mcp.ts",
     "postinstall": "node scripts/fix-spawn-helper.mjs",
     "prepublishOnly": "pnpm typecheck && pnpm build"
   },

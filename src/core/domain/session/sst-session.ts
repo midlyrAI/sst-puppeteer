@@ -235,8 +235,11 @@ export class SSTSession {
       settleMs: 100,
     });
 
-    // Race: wait for 'ready' state OR early exit from SST
-    const readyPromise = this._sessionStateMachine.waitFor(SessionState.READY, 5 * 60 * 1000);
+    // Race: wait for 'ready' state OR early exit from SST. No timeout —
+    // cold deploys can legitimately exceed any fixed ceiling. The caller
+    // (e.g. CLI `wait-for-ready --timeout`, MCP `wait_for_ready`) is the
+    // authority on how long to wait.
+    const readyPromise = this._sessionStateMachine.waitFor(SessionState.READY);
     const exitRejector = this._parentExitPromise.then(({ code, signal }) => {
       throw new Error(
         `sst dev exited during startup (code=${code}, signal=${signal}). ` +
