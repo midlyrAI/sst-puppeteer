@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   GetCommandStatusInputSchema,
@@ -11,11 +11,9 @@ export class GetCommandStatusTool extends Tool<GetCommandStatusInput, GetCommand
   readonly description = 'Get the current status of a dev command by name.';
   readonly inputSchema = GetCommandStatusInputSchema;
 
-  async execute(
-    session: SSTSession,
-    input: GetCommandStatusInput,
-  ): Promise<GetCommandStatusOutput> {
-    const status = session.getCommandStatus(input.commandName);
-    return { status };
+  async execute(client: IpcClient, input: GetCommandStatusInput): Promise<GetCommandStatusOutput> {
+    return (await client.call('get_command_status', {
+      commandName: input.commandName,
+    })) as GetCommandStatusOutput;
   }
 }

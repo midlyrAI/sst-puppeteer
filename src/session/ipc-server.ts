@@ -1,9 +1,9 @@
 import { EventEmitter } from 'node:events';
 import * as fs from 'node:fs';
 import * as net from 'node:net';
-import { type SSTSession } from '../../core/index.js';
-import { sessionDir as sessionDirFn, metaPath as metaPathFn } from '../state/paths.js';
-import { writeMeta, readMeta } from '../state/meta.js';
+import { type SSTSession } from '../core/index.js';
+import { sessionDir as sessionDirFn, metaPath as metaPathFn } from './paths.js';
+import { writeMeta, readMeta } from './meta.js';
 import {
   IpcRequestSchema,
   type IpcResponse,
@@ -42,6 +42,11 @@ export class IpcServer extends EventEmitter {
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);
       server.listen(this._socketPath, () => {
+        try {
+          fs.chmodSync(this._socketPath, 0o600);
+        } catch {
+          // best-effort; parent dir is 0o700 so this is defense-in-depth
+        }
         server.off('error', reject);
         resolve();
       });

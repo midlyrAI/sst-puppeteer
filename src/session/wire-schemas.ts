@@ -4,7 +4,7 @@ import {
   CommandStatus,
   CommandStatusSchema,
   SessionStateSchema,
-} from '../../core/index.js';
+} from '../core/index.js';
 
 // ─── Daemon-side per-method param schemas ────────────────────────────────────
 // sessionId is implicit on the IPC channel — the daemon process is bound to a

@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   StopCommandInputSchema,
@@ -11,8 +11,9 @@ export class StopCommandTool extends Tool<StopCommandInput, StopCommandOutput> {
   readonly description = 'Stop a running dev command.';
   readonly inputSchema = StopCommandInputSchema;
 
-  async execute(session: SSTSession, input: StopCommandInput): Promise<StopCommandOutput> {
-    const result = await session.stopCommand(input.commandName);
-    return { status: result.status };
+  async execute(client: IpcClient, input: StopCommandInput): Promise<StopCommandOutput> {
+    return (await client.call('stop_command', {
+      commandName: input.commandName,
+    })) as StopCommandOutput;
   }
 }

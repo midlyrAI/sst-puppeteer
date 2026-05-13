@@ -13,7 +13,7 @@ import {
   daemonParamsSchemaFor,
   mapErrorToWire,
   wireToExitCode,
-} from '../../src/cli/daemon/protocol.js';
+} from '../../src/session/protocol.js';
 
 describe('daemon-protocol', () => {
   it('Test 1: request envelope roundtrips through zod parse', () => {

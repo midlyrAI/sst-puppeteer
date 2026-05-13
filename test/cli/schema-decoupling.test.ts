@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { CliWaitForReadyOutputSchema } from '../../src/cli/daemon/wire-schemas.js';
+import { CliWaitForReadyOutputSchema } from '../../src/session/wire-schemas.js';
 import { WaitForReadyOutputSchema } from '../../src/mcp/types/tools.js';
 
 const repoRoot = path.resolve(__dirname, '../..');
-const wireSchemasPath = path.join(repoRoot, 'src/cli/daemon/wire-schemas.ts');
+const wireSchemasPath = path.join(repoRoot, 'src/session/wire-schemas.ts');
 const mcpToolsPath = path.join(repoRoot, 'src/mcp/types/tools.ts');
 
 describe('schema decoupling', () => {

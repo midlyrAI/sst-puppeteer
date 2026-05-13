@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   StopSessionInputSchema,
@@ -6,13 +6,18 @@ import {
   type StopSessionOutput,
 } from '../types/tools.js';
 
+/**
+ * Schema-only registration. `stop_session` is dispatched directly by
+ * `McpServer._handleToolCall` via `SessionManager.stop(sessionId)`, which
+ * tears down the daemon + cleans up the on-disk session dir. `execute` is
+ * unreachable in production.
+ */
 export class StopSessionTool extends Tool<StopSessionInput, StopSessionOutput> {
   readonly name = 'stop_session';
   readonly description = 'Gracefully shut down the session (kills sst dev, releases resources).';
   readonly inputSchema = StopSessionInputSchema;
 
-  async execute(session: SSTSession, _input: StopSessionInput): Promise<StopSessionOutput> {
-    await session.stop();
-    return { stopped: true };
+  async execute(_client: IpcClient, _input: StopSessionInput): Promise<StopSessionOutput> {
+    throw new Error('stop_session is dispatched by McpServer; execute() must not be reached');
   }
 }

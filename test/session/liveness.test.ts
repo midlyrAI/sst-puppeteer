@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import * as crypto from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { writeMeta } from '../../src/cli/state/meta.js';
-import { daemonLogPath, sessionDir, socketPath } from '../../src/cli/state/paths.js';
-import { SessionResolver, SessionUnhealthyError } from '../../src/cli/state/session-resolver.js';
+import { writeMeta } from '../../src/session/meta.js';
+import { daemonLogPath, sessionDir, socketPath } from '../../src/session/paths.js';
+import { SessionManager, SessionUnhealthyError } from '../../src/session/manager.js';
 
 describe('liveness', () => {
   let stateDir: string;
@@ -37,7 +37,7 @@ describe('liveness', () => {
       status: 'running',
     });
 
-    const resolver = new SessionResolver();
+    const resolver = new SessionManager();
     let caught: SessionUnhealthyError | null = null;
     try {
       await resolver.resolve({ session: sid });

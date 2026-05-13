@@ -13,8 +13,8 @@ import {
   type PtySpawnOptions,
   type PtyUnsubscribe,
 } from '../../src/core/index.js';
-import { IpcClient } from '../../src/cli/daemon/ipc-client.js';
-import { IpcServer } from '../../src/cli/daemon/ipc-server.js';
+import { IpcClient } from '../../src/session/ipc-client.js';
+import { IpcServer } from '../../src/session/ipc-server.js';
 
 class StubPty implements Pty {
   readonly pid: number | null = null;

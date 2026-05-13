@@ -7,7 +7,16 @@ export const stateRoot = (): string =>
 
 export const sessionsRoot = (): string => path.join(stateRoot(), 'sessions');
 
-export const sessionDir = (id: string): string => path.join(sessionsRoot(), id);
+const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const isValidSessionId = (id: string): boolean => SESSION_ID_RE.test(id);
+
+export const sessionDir = (id: string): string => {
+  if (!SESSION_ID_RE.test(id)) {
+    throw new Error(`invalid sessionId: ${JSON.stringify(id)}`);
+  }
+  return path.join(sessionsRoot(), id);
+};
 
 export const metaPath = (id: string): string => path.join(sessionDir(id), 'meta.json');
 
@@ -26,7 +35,7 @@ export const allSessionDirs = (): string[] => {
   try {
     return fs
       .readdirSync(root, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.isDirectory() && SESSION_ID_RE.test(entry.name))
       .map((entry) => entry.name);
   } catch {
     return [];

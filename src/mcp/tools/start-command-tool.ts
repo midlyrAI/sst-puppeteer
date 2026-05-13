@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   StartCommandInputSchema,
@@ -11,8 +11,9 @@ export class StartCommandTool extends Tool<StartCommandInput, StartCommandOutput
   readonly description = 'Start a dev command that is not currently running.';
   readonly inputSchema = StartCommandInputSchema;
 
-  async execute(session: SSTSession, input: StartCommandInput): Promise<StartCommandOutput> {
-    const result = await session.startCommand(input.commandName);
-    return { status: result.status, durationMs: result.durationMs };
+  async execute(client: IpcClient, input: StartCommandInput): Promise<StartCommandOutput> {
+    return (await client.call('start_command', {
+      commandName: input.commandName,
+    })) as StartCommandOutput;
   }
 }

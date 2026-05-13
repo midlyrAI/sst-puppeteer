@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   WaitForNextReadyInputSchema,
@@ -12,14 +12,10 @@ export class WaitForNextReadyTool extends Tool<WaitForNextReadyInput, WaitForNex
     'Block until the next deploy cycle (after a code edit) completes — ready or error.';
   readonly inputSchema = WaitForNextReadyInputSchema;
 
-  async execute(
-    session: SSTSession,
-    input: WaitForNextReadyInput,
-  ): Promise<WaitForNextReadyOutput> {
-    const result = await session.waitForNextReady({
-      timeoutMs: input.timeoutMs,
-      commandName: input.commandName,
-    });
-    return { state: result.state, durationMs: result.durationMs };
+  async execute(client: IpcClient, input: WaitForNextReadyInput): Promise<WaitForNextReadyOutput> {
+    const params: Record<string, unknown> = {};
+    if (input.timeoutMs !== undefined) params['timeoutMs'] = input.timeoutMs;
+    if (input.commandName !== undefined) params['commandName'] = input.commandName;
+    return (await client.call('wait_for_next_ready', params)) as WaitForNextReadyOutput;
   }
 }

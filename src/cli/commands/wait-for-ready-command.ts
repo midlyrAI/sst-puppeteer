@@ -1,15 +1,15 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { CliWaitForReadyOutputSchema } from '../daemon/wire-schemas.js';
+import { CliWaitForReadyOutputSchema } from '../../session/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
   SessionAmbiguousError,
   SessionNotFoundError,
-  SessionResolver,
+  SessionManager,
   SessionStartingError,
   SessionUnhealthyError,
-} from '../state/session-resolver.js';
+} from '../../session/manager.js';
 import { Command, type CliContext, type HelpSchema } from './command.js';
 
 export class WaitForReadyCommand extends Command {
@@ -74,7 +74,7 @@ export class WaitForReadyCommand extends Command {
     const timeoutRaw = parsed.values['timeout'];
     const timeoutMs = timeoutRaw !== undefined ? parseInt(timeoutRaw as string, 10) : 300_000;
 
-    const resolver = new SessionResolver();
+    const resolver = new SessionManager();
     let resolved;
     try {
       resolved = await resolver.resolve({

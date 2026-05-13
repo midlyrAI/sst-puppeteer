@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   ListCommandsInputSchema,
@@ -11,7 +11,7 @@ export class ListCommandsTool extends Tool<ListCommandsInput, ListCommandsOutput
   readonly description = 'List all dev commands registered for the session.';
   readonly inputSchema = ListCommandsInputSchema;
 
-  async execute(session: SSTSession, _input: ListCommandsInput): Promise<ListCommandsOutput> {
-    return { commands: [...session.listCommands()] };
+  async execute(client: IpcClient, _input: ListCommandsInput): Promise<ListCommandsOutput> {
+    return (await client.call('list_commands', {})) as ListCommandsOutput;
   }
 }

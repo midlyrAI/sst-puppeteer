@@ -8,8 +8,8 @@ import {
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
-import { readLastNLines } from '../state/meta.js';
-import { daemonLogPath, socketPath as socketPathFn } from '../state/paths.js';
+import { readLastNLines } from './meta.js';
+import { daemonLogPath, socketPath as socketPathFn } from './paths.js';
 
 export interface SpawnFns {
   fork: (entry: string, args: readonly string[], opts: ForkOptions) => ChildProcess;
@@ -32,14 +32,12 @@ export const resolveDaemonEntryPath = (): string => {
   // Resolve relative to this module's file. In dev (.ts) returns the source
   // bin file path; in prod (.js) returns the compiled bin file path.
   const here = url.fileURLToPath(import.meta.url);
-  // src/cli/daemon/spawn.ts  →  bin/cli.ts
-  // dist/src/cli/daemon/spawn.js → dist/bin/cli.js
+  // src/session/spawn.ts  →  bin/cli.ts   (two-up)
+  // dist/src/session/spawn.js → dist/bin/cli.js (two-up — dist mirrors src)
   if (here.endsWith('.ts')) {
-    // dev: src/cli/daemon/spawn.ts → ../../../bin/cli.ts
-    return path.resolve(path.dirname(here), '..', '..', '..', 'bin', 'cli.ts');
+    return path.resolve(path.dirname(here), '..', '..', 'bin', 'cli.ts');
   }
-  // prod: dist/src/cli/daemon/spawn.js → ../../../bin/cli.js
-  return path.resolve(path.dirname(here), '..', '..', '..', 'bin', 'cli.js');
+  return path.resolve(path.dirname(here), '..', '..', 'bin', 'cli.js');
 };
 
 export interface SpawnDaemonOpts {

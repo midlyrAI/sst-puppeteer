@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   ListSessionsInputSchema,
@@ -8,16 +8,17 @@ import {
 
 /**
  * Schema-only registration. `list_sessions` is dispatched directly by
- * `McpServer._handleToolCall` because it operates on the server-wide
- * session map rather than a single session, so `execute` is unreachable.
+ * `McpServer._handleToolCall` because it delegates to the shared
+ * `SessionManager.list()` (on-disk records) rather than acting on a single
+ * connected session, so `execute` is unreachable.
  */
 export class ListSessionsTool extends Tool<ListSessionsInput, ListSessionsOutput> {
   readonly name = 'list_sessions';
   readonly description =
-    'List all sessions currently tracked by this MCP server (in-memory only — does not survive restart).';
+    'List all sessions tracked on disk (shared file-based store; survives MCP restart).';
   readonly inputSchema = ListSessionsInputSchema;
 
-  async execute(_session: SSTSession, _input: ListSessionsInput): Promise<ListSessionsOutput> {
+  async execute(_client: IpcClient, _input: ListSessionsInput): Promise<ListSessionsOutput> {
     throw new Error('list_sessions is dispatched by McpServer; execute() must not be reached');
   }
 }

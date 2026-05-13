@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { collectNodeModulesBins } from '../../src/cli/commands/start-command.js';
+import { collectNodeModulesBins } from '../../src/session/manager.js';
 
 describe('collectNodeModulesBins', () => {
   let root: string;

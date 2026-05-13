@@ -1,15 +1,15 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { CliRestartCommandOutputSchema } from '../daemon/wire-schemas.js';
+import { CliRestartCommandOutputSchema } from '../../session/wire-schemas.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
 import {
   SessionAmbiguousError,
   SessionNotFoundError,
-  SessionResolver,
+  SessionManager,
   SessionStartingError,
   SessionUnhealthyError,
-} from '../state/session-resolver.js';
+} from '../../session/manager.js';
 import { Command, type CliContext, type HelpSchema } from './command.js';
 
 export class RestartCommandCommand extends Command {
@@ -78,7 +78,7 @@ export class RestartCommandCommand extends Command {
 
     const pretty = parsed.values['pretty'] === true;
 
-    const resolver = new SessionResolver();
+    const resolver = new SessionManager();
     let resolved;
     try {
       resolved = await resolver.resolve({
