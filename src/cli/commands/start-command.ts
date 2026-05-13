@@ -3,22 +3,22 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
-import { IpcClient } from '../daemon/ipc-client.js';
+import { IpcClient } from '../../session/ipc-client.js';
 import {
   spawnDaemon as defaultSpawnDaemon,
   type SpawnDaemonOpts,
   type SpawnDaemonResult,
-} from '../daemon/spawn.js';
+} from '../../session/spawn.js';
 import { EXIT_OK, EXIT_RUNTIME } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
-import { cleanupStaleSession, probeLiveness, tryReadMeta, writeMeta } from '../state/meta.js';
+import { cleanupStaleSession, probeLiveness, tryReadMeta, writeMeta } from '../../session/meta.js';
 import {
   allSessionDirs,
   lockDir,
   locksRoot,
   sessionDir,
   socketPath as socketPathFn,
-} from '../state/paths.js';
+} from '../../session/paths.js';
 import { Command, type CliContext, type HelpSchema } from './command.js';
 
 export type SpawnDaemonFn = (opts: SpawnDaemonOpts) => Promise<SpawnDaemonResult>;
@@ -212,7 +212,8 @@ export class StartCommand extends Command {
 
       // Step 5+7: create dir + write initial meta atomically
       fs.mkdirSync(sDir, { recursive: true });
-      writeMeta(sessionId, {
+      const createdAt = Date.now();
+      const firstMeta = {
         sessionId,
         projectDir,
         stage,
@@ -220,11 +221,12 @@ export class StartCommand extends Command {
         pgid: null,
         startTimeMs: null,
         socketPath: sockPath,
-        createdAt: Date.now(),
-        status: 'starting',
+        createdAt,
+        status: 'starting' as const,
         ...(awsProfile !== undefined ? { awsProfile } : {}),
         ...(awsRegion !== undefined ? { awsRegion } : {}),
-      });
+      };
+      writeMeta(sessionId, firstMeta);
 
       // Step 8: spawn
       const env: NodeJS.ProcessEnv = {};
@@ -237,7 +239,9 @@ export class StartCommand extends Command {
         env,
       });
 
-      // Step 9: update meta with pid
+      // Step 9: update meta with pid (preserve createdAt from the first write
+      // per shared-session-store-v2 §4 A2; second write only refreshes the
+      // mutable fields and sets lastUpdatedAt).
       let pgid: number | null = null;
       try {
         const fn = (process as { getpgid?: (p: number) => number }).getpgid;
@@ -246,17 +250,12 @@ export class StartCommand extends Command {
         pgid = pid;
       }
       writeMeta(sessionId, {
-        sessionId,
-        projectDir,
-        stage,
+        ...firstMeta,
         pid,
         pgid,
         startTimeMs,
-        socketPath: sockPath,
-        createdAt: Date.now(),
         status: 'running',
-        ...(awsProfile !== undefined ? { awsProfile } : {}),
-        ...(awsRegion !== undefined ? { awsRegion } : {}),
+        lastUpdatedAt: Date.now(),
       });
 
       // Step 10: optionally wait for ready

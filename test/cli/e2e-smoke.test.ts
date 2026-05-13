@@ -18,12 +18,12 @@ import {
   type PtySpawnOptions,
   type PtyUnsubscribe,
 } from '../../src/core/index.js';
-import { IpcServer } from '../../src/cli/daemon/ipc-server.js';
+import { IpcServer } from '../../src/session/ipc-server.js';
 import { StartCommand } from '../../src/cli/commands/start-command.js';
 import { StopCommand } from '../../src/cli/commands/stop-command.js';
 import { ListSessionsCommand } from '../../src/cli/commands/list-sessions-command.js';
-import { writeMeta } from '../../src/cli/state/meta.js';
-import { sessionDir, socketPath } from '../../src/cli/state/paths.js';
+import { writeMeta } from '../../src/session/meta.js';
+import { sessionDir, socketPath } from '../../src/session/paths.js';
 import { CommandRegistry } from '../../src/cli/commands/registry.js';
 import { VersionCommand } from '../../src/cli/commands/version-command.js';
 import { CliRunner } from '../../src/cli/runner.js';

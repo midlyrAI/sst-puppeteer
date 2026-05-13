@@ -7,12 +7,12 @@ import { formatOutput } from '../output/formatter.js';
 import {
   SessionAmbiguousError,
   SessionNotFoundError,
-  SessionResolver,
+  SessionManager,
   SessionStartingError,
   SessionUnhealthyError,
-} from '../state/session-resolver.js';
-import { tryReadMeta, validatePidOwnership } from '../state/meta.js';
-import { lockDir, metaPath, sessionDir } from '../state/paths.js';
+} from '../../session/manager.js';
+import { tryReadMeta, validatePidOwnership } from '../../session/meta.js';
+import { lockDir, metaPath, sessionDir } from '../../session/paths.js';
 import { Command, type CliContext, type HelpSchema } from './command.js';
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -90,7 +90,7 @@ export class StopCommand extends Command {
     }
 
     const pretty = parsed.values['pretty'] === true;
-    const resolver = new SessionResolver();
+    const resolver = new SessionManager();
 
     let resolved;
     try {

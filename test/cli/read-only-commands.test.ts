@@ -12,13 +12,13 @@ import {
   type PtySpawnOptions,
   type PtyUnsubscribe,
 } from '../../src/core/index.js';
-import { IpcServer } from '../../src/cli/daemon/ipc-server.js';
+import { IpcServer } from '../../src/session/ipc-server.js';
 import { GetCommandStatusCommand } from '../../src/cli/commands/get-command-status-command.js';
 import { ListCommandsCommand } from '../../src/cli/commands/list-commands-command.js';
 import { ReadCommandLogsCommand } from '../../src/cli/commands/read-command-logs-command.js';
 import { WaitForNextReadyCommand } from '../../src/cli/commands/wait-for-next-ready-command.js';
 import { WaitForReadyCommand } from '../../src/cli/commands/wait-for-ready-command.js';
-import { writeMeta } from '../../src/cli/state/meta.js';
+import { writeMeta } from '../../src/session/meta.js';
 
 class StubPty implements Pty {
   readonly pid: number | null = null;

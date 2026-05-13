@@ -3,16 +3,16 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { metaPath, sessionDir } from '../../src/cli/state/paths.js';
+import { metaPath, sessionDir } from '../../src/session/paths.js';
 import {
   MetaSchema,
   readMeta,
   tryReadMeta,
   writeMeta,
   type SessionMeta,
-} from '../../src/cli/state/meta.js';
+} from '../../src/session/meta.js';
 
-describe('cli/state/meta', () => {
+describe('session/meta', () => {
   let tmp: string;
 
   beforeEach(() => {

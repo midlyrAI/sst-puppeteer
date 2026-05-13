@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveEntryMode } from '../../src/cli/daemon/spawn.js';
+import { resolveEntryMode } from '../../src/session/spawn.js';
 
 describe('spawn-dev-mode', () => {
   it('Test 27: resolveEntryMode detects .ts and uses spawn path', () => {

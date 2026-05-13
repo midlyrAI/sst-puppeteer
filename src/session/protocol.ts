@@ -5,7 +5,7 @@ import {
   CommandNotRunningError,
   StreamConnectionError,
   UpdateFailedError,
-} from '../../core/index.js';
+} from '../core/index.js';
 import {
   DaemonGetCommandStatusParamsSchema,
   DaemonListCommandsParamsSchema,

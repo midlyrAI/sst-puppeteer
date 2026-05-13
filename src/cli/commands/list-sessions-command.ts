@@ -2,8 +2,8 @@ import { parseArgs } from 'node:util';
 import { z } from 'zod';
 import { EXIT_OK } from '../output/exit-codes.js';
 import { formatOutput } from '../output/formatter.js';
-import { cleanupStaleSession, probeLiveness, tryReadMeta } from '../state/meta.js';
-import { allSessionDirs } from '../state/paths.js';
+import { cleanupStaleSession, probeLiveness, tryReadMeta } from '../../session/meta.js';
+import { allSessionDirs } from '../../session/paths.js';
 import { Command, type CliContext, type HelpSchema } from './command.js';
 
 interface SessionListEntry {

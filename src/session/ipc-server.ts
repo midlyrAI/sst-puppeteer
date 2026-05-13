@@ -1,9 +1,9 @@
 import { EventEmitter } from 'node:events';
 import * as fs from 'node:fs';
 import * as net from 'node:net';
-import { type SSTSession } from '../../core/index.js';
-import { sessionDir as sessionDirFn, metaPath as metaPathFn } from '../state/paths.js';
-import { writeMeta, readMeta } from '../state/meta.js';
+import { type SSTSession } from '../core/index.js';
+import { sessionDir as sessionDirFn, metaPath as metaPathFn } from './paths.js';
+import { writeMeta, readMeta } from './meta.js';
 import {
   IpcRequestSchema,
   type IpcResponse,

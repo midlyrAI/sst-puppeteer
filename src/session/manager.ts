@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { IpcClient } from '../daemon/ipc-client.js';
+import { IpcClient } from './ipc-client.js';
 import {
   cleanupStaleSession,
   probeLiveness,
@@ -8,6 +8,10 @@ import {
   type SessionMeta,
 } from './meta.js';
 import { allSessionDirs } from './paths.js';
+import type { SpawnDaemonOpts, SpawnDaemonResult } from './spawn.js';
+
+export type SpawnDaemonFn = (opts: SpawnDaemonOpts) => Promise<SpawnDaemonResult>;
+export type IpcClientFactory = (socketPath: string) => Promise<IpcClient>;
 
 export interface ResolvedSession {
   readonly sessionId: string;
@@ -63,6 +67,12 @@ export class SessionStartingError extends Error {
   }
 }
 
+export interface SessionManagerOpts {
+  readonly spawnDaemon?: SpawnDaemonFn;
+  readonly ipcClientFactory?: IpcClientFactory;
+  readonly clock?: () => number;
+}
+
 const livenessLookup = async (
   sessionId: string,
 ): Promise<{
@@ -77,9 +87,14 @@ const livenessLookup = async (
   return { meta, ...liveness };
 };
 
-export class SessionResolver {
-  constructor(_stateRoot?: string) {
-    // stateRoot is read from env at call-time via paths.ts; param kept for DI parity.
+/**
+ * High-level session lifecycle manager. Folds the v1 `SessionResolver` class
+ * into `resolve()`. For Chunk A, `startOrAttach`, `list`, `stop`, and
+ * `connect` are not yet implemented — they land in Chunks B/C.
+ */
+export class SessionManager {
+  constructor(_opts: SessionManagerOpts = {}) {
+    // Per A15: holds no long-lived state. Opts are wired through in Chunk B.
   }
 
   async resolve(args: ResolveArgs): Promise<ResolvedSession> {
@@ -113,12 +128,10 @@ export class SessionResolver {
       }
       sessionId = matches[0];
     } else {
-      // No flags — scan all sessions.
       const all = allSessionDirs();
       if (all.length === 0) {
         throw new SessionNotFoundError('No session found');
       }
-      // Filter to live ones (pid alive + socket alive).
       const live: string[] = [];
       for (const id of all) {
         const r = await livenessLookup(id);
@@ -141,7 +154,6 @@ export class SessionResolver {
       throw new SessionNotFoundError('No session found');
     }
 
-    // Read meta with corruption detection.
     const meta = tryReadMeta(sessionId);
     if (meta === null) {
       const cleanup = cleanupStaleSession(sessionId);
@@ -163,7 +175,6 @@ export class SessionResolver {
     }
 
     if (pidAlive && !socketAlive) {
-      // Validate ownership before kill.
       const owned = await validatePidOwnership(meta);
       if (owned) {
         try {
@@ -181,12 +192,29 @@ export class SessionResolver {
       });
     }
 
-    // pid dead
     const cleanup = cleanupStaleSession(sessionId);
     throw new SessionUnhealthyError('Session daemon is not running', 'pid-dead', {
       sessionId,
       sessionDirRemoved: cleanup.sessionDirRemoved,
       daemonLogTail: cleanup.logTail,
     });
+  }
+
+  // ─── stubs (implemented in Chunks B/C) ──────────────────────────────────────
+
+  async startOrAttach(_opts: unknown): Promise<never> {
+    throw new Error('SessionManager.startOrAttach is implemented in Chunk B');
+  }
+
+  async list(): Promise<never> {
+    throw new Error('SessionManager.list is implemented in Chunk B');
+  }
+
+  async stop(_sessionId: string): Promise<never> {
+    throw new Error('SessionManager.stop is implemented in Chunk B/C');
+  }
+
+  async connect(_sessionId: string): Promise<never> {
+    throw new Error('SessionManager.connect is implemented in Chunk C');
   }
 }

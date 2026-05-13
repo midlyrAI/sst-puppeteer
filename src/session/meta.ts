@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import { z } from 'zod';
-import { IpcClient } from '../daemon/ipc-client.js';
+import { IpcClient } from './ipc-client.js';
 import { daemonLogPath, metaPath, sessionDir } from './paths.js';
 
 export const MetaSchema = z.object({
@@ -13,9 +13,11 @@ export const MetaSchema = z.object({
   startTimeMs: z.number().nullable(),
   socketPath: z.string(),
   createdAt: z.number(),
-  status: z.enum(['starting', 'running', 'stopped']),
+  lastUpdatedAt: z.number().optional(),
+  status: z.enum(['starting', 'running', 'stopped', 'failed']),
   awsProfile: z.string().optional(),
   awsRegion: z.string().optional(),
+  failureReason: z.string().optional(),
 });
 
 export type SessionMeta = z.infer<typeof MetaSchema>;

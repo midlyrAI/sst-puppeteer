@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
 import { NodePtyAdapter, SessionBuilder, type Pty, type SSTSession } from '../../core/index.js';
-import { IpcServer } from '../daemon/ipc-server.js';
-import { readMeta, writeMeta } from '../state/meta.js';
-import { metaPath, socketPath as socketPathFn } from '../state/paths.js';
+import { IpcServer } from '../../session/ipc-server.js';
+import { readMeta, writeMeta } from '../../session/meta.js';
+import { metaPath, socketPath as socketPathFn } from '../../session/paths.js';
 import { Command, type CliContext } from './command.js';
 
 export type AdapterFactory = () => Pty;

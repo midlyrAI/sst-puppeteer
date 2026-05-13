@@ -13,9 +13,9 @@ import {
   sessionsRoot,
   socketPath,
   stateRoot,
-} from '../../src/cli/state/paths.js';
+} from '../../src/session/paths.js';
 
-describe('cli/state/paths', () => {
+describe('session/paths', () => {
   let tmp: string;
 
   beforeEach(() => {

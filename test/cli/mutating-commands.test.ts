@@ -12,11 +12,11 @@ import {
   type PtySpawnOptions,
   type PtyUnsubscribe,
 } from '../../src/core/index.js';
-import { IpcServer } from '../../src/cli/daemon/ipc-server.js';
+import { IpcServer } from '../../src/session/ipc-server.js';
 import { RestartCommandCommand } from '../../src/cli/commands/restart-command-command.js';
 import { StartSstCommandCommand } from '../../src/cli/commands/start-sst-command-command.js';
 import { StopSstCommandCommand } from '../../src/cli/commands/stop-sst-command-command.js';
-import { writeMeta } from '../../src/cli/state/meta.js';
+import { writeMeta } from '../../src/session/meta.js';
 
 class StubPty implements Pty {
   readonly pid: number | null = null;

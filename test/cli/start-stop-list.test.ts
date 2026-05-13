@@ -18,12 +18,12 @@ import {
   type PtySpawnOptions,
   type PtyUnsubscribe,
 } from '../../src/core/index.js';
-import { IpcServer } from '../../src/cli/daemon/ipc-server.js';
+import { IpcServer } from '../../src/session/ipc-server.js';
 import { StartCommand } from '../../src/cli/commands/start-command.js';
 import { StopCommand } from '../../src/cli/commands/stop-command.js';
 import { ListSessionsCommand } from '../../src/cli/commands/list-sessions-command.js';
-import { readMeta, writeMeta } from '../../src/cli/state/meta.js';
-import { allSessionDirs, sessionDir, socketPath } from '../../src/cli/state/paths.js';
+import { readMeta, writeMeta } from '../../src/session/meta.js';
+import { allSessionDirs, sessionDir, socketPath } from '../../src/session/paths.js';
 import { type CliContext } from '../../src/cli/commands/command.js';
 
 class StubPty implements Pty {
