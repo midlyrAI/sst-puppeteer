@@ -11,10 +11,7 @@ export class GetCommandStatusTool extends Tool<GetCommandStatusInput, GetCommand
   readonly description = 'Get the current status of a dev command by name.';
   readonly inputSchema = GetCommandStatusInputSchema;
 
-  async execute(
-    client: IpcClient,
-    input: GetCommandStatusInput,
-  ): Promise<GetCommandStatusOutput> {
+  async execute(client: IpcClient, input: GetCommandStatusInput): Promise<GetCommandStatusOutput> {
     return (await client.call('get_command_status', {
       commandName: input.commandName,
     })) as GetCommandStatusOutput;

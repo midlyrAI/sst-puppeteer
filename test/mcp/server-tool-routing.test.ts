@@ -209,9 +209,7 @@ describe('McpServer tool routing (_handleToolCall) — AC-7 enumerated subtests'
       commandName: 'api',
     });
     expect(result.isError).toBeUndefined();
-    expect(state.clientCalls).toEqual([
-      { method: 'stop_command', params: { commandName: 'api' } },
-    ]);
+    expect(state.clientCalls).toEqual([{ method: 'stop_command', params: { commandName: 'api' } }]);
     expect(JSON.parse(result.content[0]!.text)).toEqual({ status: 'stopped' });
   });
 

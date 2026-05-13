@@ -313,11 +313,7 @@ export class SessionManager {
         } catch {
           // ignore meta write failure
         }
-        const e = new SessionStartFailedError(
-          `daemon spawn failed: ${msg}`,
-          sessionId,
-          msg,
-        );
+        const e = new SessionStartFailedError(`daemon spawn failed: ${msg}`, sessionId, msg);
         throw e;
       }
 

@@ -12,10 +12,7 @@ export class WaitForNextReadyTool extends Tool<WaitForNextReadyInput, WaitForNex
     'Block until the next deploy cycle (after a code edit) completes — ready or error.';
   readonly inputSchema = WaitForNextReadyInputSchema;
 
-  async execute(
-    client: IpcClient,
-    input: WaitForNextReadyInput,
-  ): Promise<WaitForNextReadyOutput> {
+  async execute(client: IpcClient, input: WaitForNextReadyInput): Promise<WaitForNextReadyOutput> {
     const params: Record<string, unknown> = {};
     if (input.timeoutMs !== undefined) params['timeoutMs'] = input.timeoutMs;
     if (input.commandName !== undefined) params['commandName'] = input.commandName;

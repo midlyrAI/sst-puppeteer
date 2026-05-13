@@ -6,7 +6,11 @@ import { toJSONSchema } from 'zod';
 import type { ToolRegistry } from './tools/registry.js';
 import { defaultRegistry } from './tools/index.js';
 import { type Transport, type StdioTransport } from './transport.js';
-import { RunSstInputSchema, StartSessionInputSchema, StopSessionInputSchema } from './types/tools.js';
+import {
+  RunSstInputSchema,
+  StartSessionInputSchema,
+  StopSessionInputSchema,
+} from './types/tools.js';
 
 // MCP safety hints surfaced to the host's model so it can prefer safer tools.
 //   readOnlyHint    — no mutations to local state or external world

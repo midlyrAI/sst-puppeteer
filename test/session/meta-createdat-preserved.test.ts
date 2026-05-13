@@ -76,4 +76,3 @@ describe('session/meta — createdAt preservation across two writeMeta calls', (
     expect(finalMeta.lastUpdatedAt!).toBeGreaterThanOrEqual(finalMeta.createdAt);
   });
 });
-
