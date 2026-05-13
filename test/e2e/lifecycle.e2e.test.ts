@@ -157,7 +157,7 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     expect(byName.get('Task-seed')!.status).toBe('idle');
   });
 
-  it('get-command-status Task-migrate → running', async () => {
+  it('AC-E3 get-command-status Task-migrate → running', async () => {
     const res = await cli(
       ['get-command-status', '--session', sessionId, '--command-name', 'Task-migrate'],
       stateRoot,
@@ -166,7 +166,7 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     expect(parseJsonStdout<StatusOut>(res).status).toBe('running');
   });
 
-  it('get-command-status Task-seed → idle', async () => {
+  it('AC-E3 get-command-status Task-seed → idle', async () => {
     const res = await cli(
       ['get-command-status', '--session', sessionId, '--command-name', 'Task-seed'],
       stateRoot,
@@ -175,7 +175,7 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     expect(parseJsonStdout<StatusOut>(res).status).toBe('idle');
   });
 
-  it('read-command-logs backend returns non-empty', async () => {
+  it('AC-E3 read-command-logs backend returns non-empty', async () => {
     const res = await cli(
       ['read-command-logs', '--session', sessionId, '--command-name', 'backend'],
       stateRoot,
@@ -265,7 +265,7 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     expect(parseJsonStdout<StatusOut>(status).status).toBe('running');
   });
 
-  it('wait-for-ready returns fast (already ready)', async () => {
+  it('AC-E3 wait-for-ready returns fast (already ready)', async () => {
     const res = await cli(
       ['wait-for-ready', '--session', sessionId, '--timeout', '5000'],
       stateRoot,
@@ -281,14 +281,14 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     expectOk(res, 'wait-for-next-ready');
   });
 
-  it('run-sst --version exits 0', async () => {
+  it('AC-E3 run-sst --version exits 0', async () => {
     const res = await cli(['run-sst', '--project', fixtureDir, '--', '--version'], stateRoot);
     expectOk(res, 'run-sst --version');
     const out = parseJsonStdout<RunSstOut>(res);
     expect(out.exitCode).toBe(0);
   });
 
-  it('list shows session', async () => {
+  it('AC-E3 list shows session', async () => {
     const res = await cli(['list'], stateRoot);
     expectOk(res, 'list');
     const out = parseJsonStdout<SessionsListOut>(res);
@@ -340,7 +340,7 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     cleanFixtureRuntimeState();
   });
 
-  it('AC-E2 start_session boots', async () => {
+  it('AC-E2/E11 start_session boots (MCP half)', async () => {
     const res = await mcp.callTool('start_session', { projectDir: fixtureDir, stage: STAGE });
     const payload = McpDistChild.parsePayload<StartSessionOut>(res);
     expect(payload.status).toBe('ready');
@@ -348,13 +348,13 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     sessionId = payload.sessionId;
   });
 
-  it('list_sessions shows session', async () => {
+  it('AC-E2 list_sessions shows session', async () => {
     const res = await mcp.callTool('list_sessions', {});
     const payload = McpDistChild.parsePayload<SessionsListOut>(res);
     expect(payload.sessions.find((s) => s.sessionId === sessionId)).toBeDefined();
   });
 
-  it('list_commands returns 5 panes', async () => {
+  it('AC-E2 list_commands returns 5 panes', async () => {
     const res = await mcp.callTool('list_commands', { sessionId });
     const payload = McpDistChild.parsePayload<ListCommandsOut>(res);
     expect(payload.commands.length).toBe(5);
@@ -364,17 +364,17 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     expect(byName.get('backend')?.spec.kind).toBe('service');
   });
 
-  it('get_command_status Task-seed → idle', async () => {
+  it('AC-E2 get_command_status Task-seed → idle', async () => {
     const res = await mcp.callTool('get_command_status', { sessionId, commandName: 'Task-seed' });
     expect(McpDistChild.parsePayload<StatusOut>(res).status).toBe('idle');
   });
 
-  it('read_command_logs backend non-empty', async () => {
+  it('AC-E2 read_command_logs backend non-empty', async () => {
     const res = await mcp.callTool('read_command_logs', { sessionId, commandName: 'backend' });
     expect(McpDistChild.parsePayload<LogsOut>(res).lines.length).toBeGreaterThan(0);
   });
 
-  it('start_command Task-seed: idle → running', async () => {
+  it('AC-E2 start_command Task-seed: idle → running', async () => {
     await mcp.callTool('start_command', { sessionId, commandName: 'Task-seed' });
     const status = await mcp.callTool('get_command_status', {
       sessionId,
@@ -383,7 +383,7 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     expect(McpDistChild.parsePayload<StatusOut>(status).status).toBe('running');
   });
 
-  it('stop_command worker → stopped', async () => {
+  it('AC-E2 stop_command worker → stopped', async () => {
     await mcp.callTool('stop_command', { sessionId, commandName: 'worker' });
     const status = await mcp.callTool('get_command_status', {
       sessionId,
@@ -392,22 +392,22 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     expect(McpDistChild.parsePayload<StatusOut>(status).status).toBe('stopped');
   });
 
-  it('restart_command backend log contains --- restarted ---', async () => {
+  it('AC-E2 restart_command backend log contains --- restarted ---', async () => {
     await mcp.callTool('restart_command', { sessionId, commandName: 'backend' });
     const logs = await mcp.callTool('read_command_logs', { sessionId, commandName: 'backend' });
     const lines = McpDistChild.parsePayload<LogsOut>(logs).lines;
     expect(lines.some((l) => l.includes('--- restarted ---'))).toBe(true);
   });
 
-  it('wait_for_ready resolves', async () => {
+  it('AC-E2 wait_for_ready resolves', async () => {
     await mcp.callTool('wait_for_ready', { sessionId, timeoutMs: 5_000 });
   });
 
-  it('wait_for_next_ready catches redeploy', { timeout: 30_000 }, async () => {
+  it('AC-E2 wait_for_next_ready catches redeploy', { timeout: 30_000 }, async () => {
     await mcp.callTool('wait_for_next_ready', { sessionId, timeoutMs: 25_000 });
   });
 
-  it('run_sst exits 0', async () => {
+  it('AC-E2 run_sst exits 0', async () => {
     const res = await mcp.callTool('run_sst', {
       projectDir: fixtureDir,
       args: ['--version'],
@@ -416,7 +416,7 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     expect(out.exitCode).toBe(0);
   });
 
-  it('stop_session removes session subdir', async () => {
+  it('AC-E2 stop_session removes session subdir', async () => {
     const sidDir = path.join(stateRoot, 'sessions', sessionId);
     expect(fs.existsSync(sidDir)).toBe(true);
     await mcp.callTool('stop_session', { sessionId });
