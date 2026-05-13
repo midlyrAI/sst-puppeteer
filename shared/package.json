@@ -1,0 +1,14 @@
+{
+  "name": "@midlyr/sst-puppeteer-shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0",
+    "zod": "^4.0.0"
+  }
+}

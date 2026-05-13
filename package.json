@@ -1,8 +1,9 @@
 {
-  "name": "@midlyr/sst-puppeteer-mcp",
-  "version": "0.1.1",
+  "name": "sst-puppeteer-monorepo",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "description": "MCP server for driving sst dev — gives AI agents the full interactive-TUI feature set (per-pane restart, stream events, log tail, redeploy waits) plus a passthrough for one-shot SST subcommands.",
+  "description": "Monorepo root for @midlyr/sst-puppeteer-cli and @midlyr/sst-puppeteer-mcp.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,48 +13,17 @@
     "url": "https://github.com/midlyrAI/sst-puppeteer/issues"
   },
   "homepage": "https://github.com/midlyrAI/sst-puppeteer#readme",
-  "keywords": [
-    "sst",
-    "mcp",
-    "model-context-protocol",
-    "claude",
-    "ai-agents",
-    "serverless"
-  ],
   "engines": {
     "node": ">=22"
   },
-  "bin": {
-    "sst-puppeteer-mcp": "./dist/bin/mcp.js",
-    "sst-puppeteer": "./dist/bin/cli.js"
-  },
-  "files": [
-    "dist",
-    "scripts/fix-spawn-helper.mjs"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && chmod +x dist/bin/*.js",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint bin src test",
-    "lint:fix": "eslint bin src test --fix",
+    "build": "pnpm -r --filter './cli' --filter './mcp' build",
+    "typecheck": "pnpm -r --filter './cli' --filter './mcp' --filter './shared' --filter './e2e' typecheck",
+    "lint": "eslint cli/src cli/bin mcp/src mcp/bin shared/src e2e/*.ts e2e/helpers e2e/global-setup.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "e2e": "vitest run --config vitest.config.e2e.ts",
-    "cli": "node dist/bin/cli.js",
-    "cli:dev": "tsx bin/cli.ts",
-    "mcp": "node dist/bin/mcp.js",
-    "mcp:dev": "tsx bin/mcp.ts",
-    "postinstall": "node scripts/fix-spawn-helper.mjs",
-    "prepublishOnly": "pnpm typecheck && pnpm build"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "node-pty": "^1.0.0",
-    "zod": "^4.0.0"
+    "e2e": "vitest run --config e2e/vitest.config.ts"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",

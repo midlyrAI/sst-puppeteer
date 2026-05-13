@@ -138,8 +138,26 @@ The agent calls `start_session({ projectDir, stage: 'dev' })`, then `wait_for_re
 ### Developing locally
 
 ```sh
-pnpm install && pnpm -r build
-claude mcp add sst-puppeteer -s user -- node $(pwd)/packages/mcp/dist/bin.js
+pnpm install && pnpm build
+claude mcp add sst-puppeteer -s user -- node $(pwd)/mcp/dist/mcp/bin/sst-puppeteer-mcp.js
+```
+
+### Two packages
+
+This repo publishes two packages:
+
+- `@midlyr/sst-puppeteer-mcp` — the MCP server (use with Claude Code, Codex, etc.)
+- `@midlyr/sst-puppeteer-cli` — the standalone CLI (use directly from scripts/shells)
+
+Both bundle the shared core; install only the one you need. Daemon entry resolution is via `SST_PUPPETEER_DAEMON_ENTRY`, stamped by whichever bin you launch.
+
+Repository layout:
+
+```
+shared/   # private workspace — shared core + session code (bundled into both packages)
+cli/      # @midlyr/sst-puppeteer-cli — published
+mcp/      # @midlyr/sst-puppeteer-mcp — published
+e2e/      # private workspace — end-to-end tests against the built bins
 ```
 
 ---
