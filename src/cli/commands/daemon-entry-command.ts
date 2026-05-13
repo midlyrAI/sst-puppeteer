@@ -1,10 +1,5 @@
 import * as fs from 'node:fs';
-import {
-  NodePtyAdapter,
-  SessionBuilder,
-  type Pty,
-  type SSTSession,
-} from '../../core/index.js';
+import { NodePtyAdapter, SessionBuilder, type Pty, type SSTSession } from '../../core/index.js';
 import { IpcServer } from '../daemon/ipc-server.js';
 import { readMeta, writeMeta } from '../state/meta.js';
 import { metaPath, socketPath as socketPathFn } from '../state/paths.js';
@@ -29,9 +24,7 @@ export class DaemonEntryCommand extends Command {
     }
     const sessionDirEnv = process.env['SST_PUPPETEER_SESSION_DIR'];
     if (sessionDirEnv === undefined || sessionDirEnv === '') {
-      ctx.stderr.write(
-        JSON.stringify({ error: 'SST_PUPPETEER_SESSION_DIR not set' }) + '\n',
-      );
+      ctx.stderr.write(JSON.stringify({ error: 'SST_PUPPETEER_SESSION_DIR not set' }) + '\n');
       return 1;
     }
     const mp = metaPath(sessionId);

@@ -36,12 +36,7 @@ export class SessionUnhealthyError extends Error {
   override readonly name = 'SessionUnhealthyError';
   constructor(
     message: string,
-    readonly reason:
-      | 'corrupted'
-      | 'pid-dead'
-      | 'socket-dead'
-      | 'ownership-failed'
-      | 'unknown',
+    readonly reason: 'corrupted' | 'pid-dead' | 'socket-dead' | 'ownership-failed' | 'unknown',
     readonly details: Record<string, unknown> = {},
   ) {
     super(message);
@@ -68,7 +63,9 @@ export class SessionStartingError extends Error {
   }
 }
 
-const livenessLookup = async (sessionId: string): Promise<{
+const livenessLookup = async (
+  sessionId: string,
+): Promise<{
   meta: SessionMeta | null;
   pidAlive: boolean;
   socketAlive: boolean;
@@ -176,28 +173,20 @@ export class SessionResolver {
         }
       }
       const cleanup = cleanupStaleSession(sessionId);
-      throw new SessionUnhealthyError(
-        'daemon pid alive but socket dead',
-        'socket-dead',
-        {
-          sessionId,
-          sessionDirRemoved: cleanup.sessionDirRemoved,
-          daemonLogTail: cleanup.logTail,
-          ownerVerified: owned,
-        },
-      );
+      throw new SessionUnhealthyError('daemon pid alive but socket dead', 'socket-dead', {
+        sessionId,
+        sessionDirRemoved: cleanup.sessionDirRemoved,
+        daemonLogTail: cleanup.logTail,
+        ownerVerified: owned,
+      });
     }
 
     // pid dead
     const cleanup = cleanupStaleSession(sessionId);
-    throw new SessionUnhealthyError(
-      'Session daemon is not running',
-      'pid-dead',
-      {
-        sessionId,
-        sessionDirRemoved: cleanup.sessionDirRemoved,
-        daemonLogTail: cleanup.logTail,
-      },
-    );
+    throw new SessionUnhealthyError('Session daemon is not running', 'pid-dead', {
+      sessionId,
+      sessionDirRemoved: cleanup.sessionDirRemoved,
+      daemonLogTail: cleanup.logTail,
+    });
   }
 }

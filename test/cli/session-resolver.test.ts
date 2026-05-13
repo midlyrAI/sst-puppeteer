@@ -11,11 +11,7 @@ import {
   SessionResolver,
 } from '../../src/cli/state/session-resolver.js';
 
-const writeLive = (
-  sid: string,
-  projectDir: string,
-  stage: string,
-): void => {
+const writeLive = (sid: string, projectDir: string, stage: string): void => {
   fs.mkdirSync(sessionDir(sid), { recursive: true });
   writeMeta(sid, {
     sessionId: sid,

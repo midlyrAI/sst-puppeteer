@@ -79,15 +79,11 @@ export const spawnDaemon = async (opts: SpawnDaemonOpts): Promise<SpawnDaemonRes
         env,
       });
     } else {
-      child = fns.spawn(
-        process.execPath,
-        ['--import', 'tsx', entry, '__daemon', opts.sessionId],
-        {
-          detached: true,
-          stdio: ['ignore', logFd, logFd],
-          env,
-        },
-      );
+      child = fns.spawn(process.execPath, ['--import', 'tsx', entry, '__daemon', opts.sessionId], {
+        detached: true,
+        stdio: ['ignore', logFd, logFd],
+        env,
+      });
     }
   } finally {
     fs.closeSync(logFd);
@@ -119,7 +115,10 @@ export const spawnDaemon = async (opts: SpawnDaemonOpts): Promise<SpawnDaemonRes
     const onError = (err: Error): void => finish(false, err);
     const onExit = (code: number | null): void => {
       const tail = readLastNLines(daemonLogPath(opts.sessionId), 50);
-      finish(false, new Error(`daemon exited (code=${String(code)}) before ready. Log tail:\n${tail}`));
+      finish(
+        false,
+        new Error(`daemon exited (code=${String(code)}) before ready. Log tail:\n${tail}`),
+      );
     };
 
     let pollTimer: NodeJS.Timeout | null = null;

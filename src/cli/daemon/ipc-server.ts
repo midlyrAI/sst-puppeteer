@@ -162,10 +162,7 @@ export class IpcServer extends EventEmitter {
       case 'wait_for_next_ready': {
         const timeoutMs = params['timeoutMs'] as number | undefined;
         const commandName = params['commandName'] as string | undefined;
-        return this._raceAbort(
-          session.waitForNextReady({ timeoutMs, commandName }),
-          abortSignal,
-        );
+        return this._raceAbort(session.waitForNextReady({ timeoutMs, commandName }), abortSignal);
       }
       case 'list_commands': {
         return { commands: session.listCommands() };

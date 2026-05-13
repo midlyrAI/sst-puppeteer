@@ -24,14 +24,9 @@ import { Command, type CliContext, type HelpSchema } from './command.js';
 export type SpawnDaemonFn = (opts: SpawnDaemonOpts) => Promise<SpawnDaemonResult>;
 
 const dedupKey = (projectDir: string, stage: string): string =>
-  crypto
-    .createHash('sha256')
-    .update(`${projectDir}:${stage}`)
-    .digest('hex')
-    .slice(0, 12);
+  crypto.createHash('sha256').update(`${projectDir}:${stage}`).digest('hex').slice(0, 12);
 
-const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Walk up from projectDir collecting every existing `node_modules/.bin`
@@ -107,9 +102,7 @@ export class StartCommand extends Command {
         strict: true,
       });
     } catch (err) {
-      ctx.stderr.write(
-        JSON.stringify({ error: (err as Error).message }) + '\n',
-      );
+      ctx.stderr.write(JSON.stringify({ error: (err as Error).message }) + '\n');
       return 2;
     }
 
@@ -178,9 +171,7 @@ export class StartCommand extends Command {
           fs.mkdirSync(lockPath, { recursive: false });
           lockAcquired = true;
         } catch {
-          ctx.stderr.write(
-            JSON.stringify({ error: 'session already starting' }) + '\n',
-          );
+          ctx.stderr.write(JSON.stringify({ error: 'session already starting' }) + '\n');
           return EXIT_RUNTIME;
         }
       } else {
@@ -195,10 +186,7 @@ export class StartCommand extends Command {
       for (const id of allSessionDirs()) {
         const meta = tryReadMeta(id);
         if (meta === null) continue;
-        if (
-          path.resolve(meta.projectDir) === projectDir &&
-          (meta.stage ?? 'default') === stage
-        ) {
+        if (path.resolve(meta.projectDir) === projectDir && (meta.stage ?? 'default') === stage) {
           if (meta.status === 'starting' || meta.pid === null) {
             // Still starting elsewhere; treat as already running.
             ctx.stderr.write(
@@ -293,10 +281,7 @@ export class StartCommand extends Command {
         }
       } else {
         ctx.stdout.write(
-          formatOutput(
-            { sessionId, projectDir, stage, status: 'started' },
-            { pretty },
-          ) + '\n',
+          formatOutput({ sessionId, projectDir, stage, status: 'started' }, { pretty }) + '\n',
         );
       }
 
@@ -326,10 +311,7 @@ export class StartCommand extends Command {
     for (const id of allSessionDirs()) {
       const meta = tryReadMeta(id);
       if (meta === null) continue;
-      if (
-        path.resolve(meta.projectDir) === projectDir &&
-        (meta.stage ?? 'default') === stage
-      ) {
+      if (path.resolve(meta.projectDir) === projectDir && (meta.stage ?? 'default') === stage) {
         if (meta.status === 'starting' || meta.pid === null) return id;
         const liveness = await probeLiveness(meta);
         if (liveness.pidAlive && liveness.socketAlive) return id;

@@ -88,9 +88,7 @@ export class ListCommandsCommand extends Command {
         return 4;
       }
       if (err instanceof SessionAmbiguousError) {
-        ctx.stderr.write(
-          JSON.stringify({ error: err.message, candidates: err.candidates }) + '\n',
-        );
+        ctx.stderr.write(JSON.stringify({ error: err.message, candidates: err.candidates }) + '\n');
         return 2;
       }
       if (err instanceof SessionStartingError) {

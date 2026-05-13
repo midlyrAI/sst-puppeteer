@@ -18,11 +18,7 @@ import { Command, type CliContext, type HelpSchema } from './command.js';
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 const dedupKeyFor = (projectDir: string, stage: string): string =>
-  crypto
-    .createHash('sha256')
-    .update(`${projectDir}:${stage}`)
-    .digest('hex')
-    .slice(0, 12);
+  crypto.createHash('sha256').update(`${projectDir}:${stage}`).digest('hex').slice(0, 12);
 
 export class StopCommand extends Command {
   readonly name = 'stop';
@@ -105,9 +101,7 @@ export class StopCommand extends Command {
       });
     } catch (err) {
       if (err instanceof SessionUnhealthyError) {
-        ctx.stdout.write(
-          formatOutput({ stopped: true, alreadyStale: true }, { pretty }) + '\n',
-        );
+        ctx.stdout.write(formatOutput({ stopped: true, alreadyStale: true }, { pretty }) + '\n');
         return EXIT_OK;
       }
       if (err instanceof SessionNotFoundError) {
@@ -115,9 +109,7 @@ export class StopCommand extends Command {
         return 3;
       }
       if (err instanceof SessionAmbiguousError) {
-        ctx.stderr.write(
-          JSON.stringify({ error: err.message, candidates: err.candidates }) + '\n',
-        );
+        ctx.stderr.write(JSON.stringify({ error: err.message, candidates: err.candidates }) + '\n');
         return 2;
       }
       if (err instanceof SessionStartingError) {

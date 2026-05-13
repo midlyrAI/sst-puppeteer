@@ -25,9 +25,7 @@ export class VersionCommand extends Command {
     }
 
     if (parsed.values['help-json'] === true) {
-      ctx.stdout.write(
-        JSON.stringify({ name: this.name, description: this.description }) + '\n',
-      );
+      ctx.stdout.write(JSON.stringify({ name: this.name, description: this.description }) + '\n');
       return EXIT_OK;
     }
     if (parsed.values['help'] === true) {

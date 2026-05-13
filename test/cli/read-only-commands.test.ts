@@ -112,10 +112,7 @@ describe('read-only-commands', () => {
     });
   };
 
-  const makeCtx = (
-    stdout: Writable,
-    stderr: Writable,
-  ) => ({ stdout, stderr, cwd: tmpDir });
+  const makeCtx = (stdout: Writable, stderr: Writable) => ({ stdout, stderr, cwd: tmpDir });
 
   it('list-commands > returns commands array from daemon', async () => {
     vi.spyOn(session, 'listCommands').mockReturnValue([
@@ -225,9 +222,7 @@ describe('read-only-commands', () => {
   });
 
   it('read-command-logs > passes through since param for forward-compat', async () => {
-    const spy = vi
-      .spyOn(session, 'readCommandLogs')
-      .mockResolvedValue(['a'] as never);
+    const spy = vi.spyOn(session, 'readCommandLogs').mockResolvedValue(['a'] as never);
 
     await startServer();
 
@@ -240,8 +235,6 @@ describe('read-only-commands', () => {
     );
 
     // Verify since was passed to the daemon (and forwarded to session).
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({ since: 1234567890 }),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ since: 1234567890 }));
   });
 });

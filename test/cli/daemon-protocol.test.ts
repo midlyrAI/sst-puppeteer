@@ -31,7 +31,9 @@ describe('daemon-protocol', () => {
 
   it('Test 2: error response maps exception class to wire code', () => {
     expect(mapErrorToWire(new CommandNotFoundError('x')).code).toBe('COMMAND_NOT_FOUND');
-    expect(mapErrorToWire(new CommandAlreadyRunningError('x')).code).toBe('COMMAND_ALREADY_RUNNING');
+    expect(mapErrorToWire(new CommandAlreadyRunningError('x')).code).toBe(
+      'COMMAND_ALREADY_RUNNING',
+    );
     expect(mapErrorToWire(new CommandNotRunningError('x')).code).toBe('COMMAND_NOT_RUNNING');
     expect(mapErrorToWire(new UpdateFailedError('x')).code).toBe('TIMEOUT');
     expect(mapErrorToWire(new StreamConnectionError('x', '', 0)).code).toBe('DISCONNECTED');

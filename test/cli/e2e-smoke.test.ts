@@ -35,8 +35,12 @@ class StubPty implements Pty {
     throw new NotImplementedError('stub.spawn');
   }
   write(_d: string): void {}
-  onData(_h: PtyDataHandler): PtyUnsubscribe { return () => {}; }
-  onExit(_h: PtyExitHandler): PtyUnsubscribe { return () => {}; }
+  onData(_h: PtyDataHandler): PtyUnsubscribe {
+    return () => {};
+  }
+  onExit(_h: PtyExitHandler): PtyUnsubscribe {
+    return () => {};
+  }
   resize(_c: number, _r: number): void {}
   kill(): void {}
 }
@@ -71,11 +75,19 @@ describe('e2e-smoke', () => {
       inProcServer = null;
     }
     if (inProcSession !== null) {
-      try { await inProcSession.stop(); } catch { /* ignore */ }
+      try {
+        await inProcSession.stop();
+      } catch {
+        /* ignore */
+      }
       inProcSession = null;
     }
     vi.unstubAllEnvs();
-    try { fs.rmSync(stateDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    try {
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
   });
 
   const standUpDaemon = async (sessionId: string): Promise<void> => {
@@ -120,7 +132,15 @@ describe('e2e-smoke', () => {
     {
       const { ctx, out, err } = makeCtx();
       const runner = new CliRunner({ registry, ctx });
-      const code = await runner.run(['node', 'cli', 'start', '/tmp/e2e-project', '--stage', 'test', '--no-wait']);
+      const code = await runner.run([
+        'node',
+        'cli',
+        'start',
+        '/tmp/e2e-project',
+        '--stage',
+        'test',
+        '--no-wait',
+      ]);
       expect(code).toBe(0);
       expect(drain(err)).toBe('');
       const startOut = drain(out).trim();

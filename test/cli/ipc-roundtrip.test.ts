@@ -90,14 +90,20 @@ describe('ipc-roundtrip', () => {
   it('Test 6: concurrent clients are served independently', async () => {
     const session = buildStubSession();
     vi.spyOn(session, 'listCommands').mockReturnValue([
-      { spec: { name: 'a', kind: 'service', command: 'echo', autostart: false, killable: true }, status: CommandStatus.STOPPED },
+      {
+        spec: { name: 'a', kind: 'service', command: 'echo', autostart: false, killable: true },
+        status: CommandStatus.STOPPED,
+      },
     ] as never);
     server = new IpcServer(session, sockPath);
     await server.start();
 
     const c1 = await IpcClient.connect(sockPath);
     const c2 = await IpcClient.connect(sockPath);
-    const [r1, r2] = await Promise.all([c1.call('list_commands', {}), c2.call('list_commands', {})]);
+    const [r1, r2] = await Promise.all([
+      c1.call('list_commands', {}),
+      c2.call('list_commands', {}),
+    ]);
     expect((r1 as { commands: unknown[] }).commands).toHaveLength(1);
     expect((r2 as { commands: unknown[] }).commands).toHaveLength(1);
     c1.close();

@@ -27,7 +27,9 @@ export class ReadCommandLogsCommand extends Command {
         since: z
           .number()
           .optional()
-          .describe('Return only lines after this epoch-ms timestamp (forward-compat; ignored by core today)'),
+          .describe(
+            'Return only lines after this epoch-ms timestamp (forward-compat; ignored by core today)',
+          ),
         pretty: z.boolean().optional(),
       }),
       output: CliReadCommandLogsOutputSchema,
@@ -108,9 +110,7 @@ export class ReadCommandLogsCommand extends Command {
         return 4;
       }
       if (err instanceof SessionAmbiguousError) {
-        ctx.stderr.write(
-          JSON.stringify({ error: err.message, candidates: err.candidates }) + '\n',
-        );
+        ctx.stderr.write(JSON.stringify({ error: err.message, candidates: err.candidates }) + '\n');
         return 2;
       }
       if (err instanceof SessionStartingError) {

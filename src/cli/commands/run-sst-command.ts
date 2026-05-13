@@ -82,9 +82,7 @@ export class RunSstCommand extends Command {
     }
 
     const projectRaw = parsed.values['project'] as string | undefined;
-    const projectDir = projectRaw
-      ? path.resolve(ctx.cwd, projectRaw)
-      : ctx.cwd;
+    const projectDir = projectRaw ? path.resolve(ctx.cwd, projectRaw) : ctx.cwd;
 
     const stage = parsed.values['stage'] as string | undefined;
     const timeoutRaw = parsed.values['timeout'] as string | undefined;

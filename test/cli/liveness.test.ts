@@ -3,10 +3,7 @@ import * as crypto from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { writeMeta } from '../../src/cli/state/meta.js';
 import { daemonLogPath, sessionDir, socketPath } from '../../src/cli/state/paths.js';
-import {
-  SessionResolver,
-  SessionUnhealthyError,
-} from '../../src/cli/state/session-resolver.js';
+import { SessionResolver, SessionUnhealthyError } from '../../src/cli/state/session-resolver.js';
 
 describe('liveness', () => {
   let stateDir: string;

@@ -7,10 +7,20 @@ describe('cli command polymorphism', () => {
     expect(registry.size()).toBe(14);
     const names = registry.names();
     for (const expected of [
-      'version', 'start', 'stop', 'list', '__daemon',
-      'wait-for-ready', 'wait-for-next-ready', 'list-commands',
-      'get-command-status', 'read-command-logs',
-      'start-command', 'stop-command', 'restart-command', 'run-sst',
+      'version',
+      'start',
+      'stop',
+      'list',
+      '__daemon',
+      'wait-for-ready',
+      'wait-for-next-ready',
+      'list-commands',
+      'get-command-status',
+      'read-command-logs',
+      'start-command',
+      'stop-command',
+      'restart-command',
+      'run-sst',
     ]) {
       expect(names).toContain(expected);
     }

@@ -113,10 +113,7 @@ describe('run-sst', () => {
     const cmd = new RunSstCommand();
     const out = makeWritable();
     const err = makeWritable();
-    const code = await cmd.execute(
-      ['--', 'deploy'],
-      makeCtx(out.stream, err.stream, '/proj'),
-    );
+    const code = await cmd.execute(['--', 'deploy'], makeCtx(out.stream, err.stream, '/proj'));
 
     expect(code).toBe(1);
     // Result still printed to stdout.
