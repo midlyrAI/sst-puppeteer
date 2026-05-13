@@ -1,6 +1,6 @@
 # sst-puppeteer
 
-> A headless control layer for `sst dev` — drive the interactive TUI from AI agents, scripts, or any process. Ships an MCP server today; CLI and library surfaces share the same core.
+> A headless control layer for `sst dev` — drive the interactive TUI from AI agents, scripts, or any process. Ships both an **MCP server** and a **CLI**, backed by the same file-based session store so they see each other's sessions and survive restarts.
 
 ## Why
 
@@ -32,6 +32,10 @@ Two concepts the tools operate on:
 - **Command** — one pane _inside_ a session, declared under `dev.command` in `sst.config.ts` (e.g. `api`, `web`, `worker`, `ngrok`). Identified by name within a session. `start_command` / `stop_command` / `restart_command` / `read_command_logs` act on these.
 
 So `list_sessions` tells you "which `sst dev`'s am I running?" and `list_commands` tells you "what panes does _this_ `sst dev` have?".
+
+Sessions are stored on disk at `~/.sst-puppeteer/sessions/<sessionId>/`, so they're visible to **both** the MCP server and the CLI, and they survive MCP server restarts. Calling `start_session` for an already-running `(projectDir, stage)` is idempotent — it returns the existing `sessionId` with `reused: true`.
+
+### Use it as an MCP server
 
 **1. Register the MCP server** from npm. Pick your host below.
 
@@ -135,11 +139,48 @@ codex mcp add sst-puppeteer -- npx -y @midlyr/sst-puppeteer-mcp
 
 The agent calls `start_session({ projectDir, stage: 'dev' })`, then `wait_for_ready`, `restart_command`, `read_command_logs` — same primitives you'd use by hand.
 
+### Use it as a CLI
+
+For scripts, one-shot agent invocations, or as a lower-overhead alternative to MCP (no per-prompt schema preload):
+
+```sh
+npm install -g @midlyr/sst-puppeteer-mcp
+sst-puppeteer --help
+```
+
+Every MCP tool has a CLI equivalent:
+
+```sh
+sst-puppeteer start /path/to/app --stage dev          # blocks until ready
+sst-puppeteer list                                    # active sessions
+sst-puppeteer list-commands --session <id>            # panes in this session
+sst-puppeteer read-command-logs --session <id> --command-name api
+sst-puppeteer restart-command --session <id> --command-name api
+sst-puppeteer wait-for-next-ready --session <id>      # after an edit triggers redeploy
+sst-puppeteer stop --session <id>                     # tear down the session
+sst-puppeteer run-sst --project /path/to/app -- deploy --stage prod
+```
+
+Output is JSON by default (use `--pretty` for human-readable). Sessions resolve by `--session <id>` or by `(--project, --stage)`. Exit codes are stable: `0` ok, `1` runtime error, `2` usage error, `3` no matching session, `4` session unhealthy.
+
+Because the CLI shares the on-disk session store with the MCP server, an MCP-started session shows up in `sst-puppeteer list`, and a CLI-started session is visible to MCP clients via `list_sessions`.
+
 ### Developing locally
 
 ```sh
-pnpm install && pnpm -r build
-claude mcp add sst-puppeteer -s user -- node $(pwd)/packages/mcp/dist/bin.js
+pnpm install
+pnpm cli:dev start /path/to/app --stage dev   # run CLI from src/ via tsx
+pnpm mcp:dev                                  # run MCP from src/ via tsx
+pnpm build                                    # produce dist/
+pnpm test                                     # unit + integration tests
+pnpm e2e                                      # full lifecycle against fake SST
+```
+
+To register a local build as an MCP server in Claude:
+
+```sh
+pnpm build
+claude mcp add sst-puppeteer -s user -- node $(pwd)/dist/bin/mcp.js
 ```
 
 ---

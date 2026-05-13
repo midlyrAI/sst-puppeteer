@@ -1,8 +1,8 @@
 {
   "name": "@midlyr/sst-puppeteer-mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
-  "description": "MCP server for driving sst dev — gives AI agents the full interactive-TUI feature set (per-pane restart, stream events, log tail, redeploy waits) plus a passthrough for one-shot SST subcommands.",
+  "description": "Headless control layer for sst dev — ships both an MCP server and a CLI, backed by a shared file-based session store. Gives AI agents the full interactive-TUI feature set (per-pane restart, stream events, log tail, redeploy waits) plus a passthrough for one-shot SST subcommands.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,7 +18,8 @@
     "model-context-protocol",
     "claude",
     "ai-agents",
-    "serverless"
+    "serverless",
+    "cli"
   ],
   "engines": {
     "node": ">=22"
