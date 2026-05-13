@@ -1,0 +1,5 @@
+{
+  "name": "fake-sst-fixture",
+  "private": true,
+  "type": "module"
+}
