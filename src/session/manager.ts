@@ -267,7 +267,7 @@ export class SessionManager {
       const sDir = sessionDirFn(sessionId);
       const sockPath = socketPathFn(sessionId);
 
-      fs.mkdirSync(sDir, { recursive: true });
+      fs.mkdirSync(sDir, { recursive: true, mode: 0o700 });
       const createdAt = this._clock();
       const firstMeta: SessionMeta = {
         sessionId,

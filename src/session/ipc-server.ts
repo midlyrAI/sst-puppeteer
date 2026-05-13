@@ -42,6 +42,11 @@ export class IpcServer extends EventEmitter {
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);
       server.listen(this._socketPath, () => {
+        try {
+          fs.chmodSync(this._socketPath, 0o600);
+        } catch {
+          // best-effort; parent dir is 0o700 so this is defense-in-depth
+        }
         server.off('error', reject);
         resolve();
       });

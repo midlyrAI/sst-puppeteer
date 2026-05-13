@@ -38,13 +38,18 @@ describe('session/paths', () => {
   });
 
   it('sessionsRoot, sessionDir, metaPath, socketPath, daemonLogPath, panesDir compose under stateRoot', () => {
-    const id = 'abc123';
+    const id = '12345678-1234-1234-1234-123456789abc';
     expect(sessionsRoot()).toBe(path.join(tmp, 'sessions'));
     expect(sessionDir(id)).toBe(path.join(tmp, 'sessions', id));
     expect(metaPath(id)).toBe(path.join(tmp, 'sessions', id, 'meta.json'));
     expect(socketPath(id)).toBe(path.join(tmp, 'sessions', id, 'daemon.sock'));
     expect(daemonLogPath(id)).toBe(path.join(tmp, 'sessions', id, 'daemon.log'));
     expect(panesDir(id)).toBe(path.join(tmp, 'sessions', id, 'panes'));
+  });
+
+  it('sessionDir rejects non-UUID input', () => {
+    expect(() => sessionDir('../etc/passwd')).toThrow(/invalid sessionId/);
+    expect(() => sessionDir('abc123')).toThrow(/invalid sessionId/);
   });
 
   it('locksRoot and lockDir compose under stateRoot', () => {
@@ -56,11 +61,14 @@ describe('session/paths', () => {
     expect(allSessionDirs()).toEqual([]);
   });
 
-  it('allSessionDirs lists session directory names', () => {
-    fs.mkdirSync(path.join(tmp, 'sessions', 's1'), { recursive: true });
-    fs.mkdirSync(path.join(tmp, 'sessions', 's2'), { recursive: true });
+  it('allSessionDirs lists session directory names (UUIDs only)', () => {
+    const s1 = '11111111-1111-1111-1111-111111111111';
+    const s2 = '22222222-2222-2222-2222-222222222222';
+    fs.mkdirSync(path.join(tmp, 'sessions', s1), { recursive: true });
+    fs.mkdirSync(path.join(tmp, 'sessions', s2), { recursive: true });
+    fs.mkdirSync(path.join(tmp, 'sessions', 'not-a-uuid'), { recursive: true });
     fs.writeFileSync(path.join(tmp, 'sessions', 'not-a-dir.txt'), 'x');
     const dirs = allSessionDirs().sort();
-    expect(dirs).toEqual(['s1', 's2']);
+    expect(dirs).toEqual([s1, s2]);
   });
 });
