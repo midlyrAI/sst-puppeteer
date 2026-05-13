@@ -7,6 +7,24 @@ import {
   SessionStateSchema,
 } from '../../core/index.js';
 
+/**
+ * Synthesized session state surfaced by `list_sessions`. Sourced from the
+ * on-disk `meta.status` + `probeLiveness` booleans (see
+ * `SessionManager.list()`); independent of the in-process `SSTSession.state`
+ * (which is the core domain state and remains used by `wait_for_ready` /
+ * `wait_for_next_ready`).
+ *
+ * Per plan §10: this is a breaking change to the `list_sessions` wire shape.
+ */
+export const ListedSessionStateSchema = z.enum([
+  'starting',
+  'ready',
+  'unhealthy',
+  'stopped',
+  'failed',
+]);
+export type ListedSessionState = z.infer<typeof ListedSessionStateSchema>;
+
 export const TOOL_NAMES = [
   'start_session',
   'list_sessions',
@@ -111,6 +129,9 @@ export type RunSstInput = z.infer<typeof RunSstInputSchema>;
 
 export const StartSessionOutputSchema = z.object({
   sessionId: z.string(),
+  reused: z.boolean(),
+  status: z.enum(['ready', 'started', 'failed']),
+  error: z.string().optional(),
 });
 export type StartSessionOutput = z.infer<typeof StartSessionOutputSchema>;
 
@@ -118,8 +139,9 @@ export const SessionSummarySchema = z.object({
   sessionId: z.string(),
   projectDir: z.string(),
   stage: z.string().optional(),
-  state: SessionStateSchema,
+  state: ListedSessionStateSchema,
   startedAt: z.number(),
+  lastUpdatedAt: z.number().optional(),
 });
 export type SessionSummary = z.infer<typeof SessionSummarySchema>;
 

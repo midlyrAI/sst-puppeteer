@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { type ZodType } from 'zod';
 
 /**
@@ -6,10 +6,14 @@ import { type ZodType } from 'zod';
  * source of truth for both the wire-level JSON Schema (converted once at the
  * protocol boundary in `McpServer`) and the TypeScript input type (derived
  * via `z.infer` in `types/tools.ts`).
+ *
+ * `execute` receives a session-scoped `IpcClient` (already connected by the
+ * server). Tool bodies translate input → wire-method call. The base class
+ * has no knowledge of the daemon's `SSTSession`.
  */
 export abstract class Tool<TInput, TOutput> {
   abstract readonly name: string;
   abstract readonly description: string;
   abstract readonly inputSchema: ZodType<TInput>;
-  abstract execute(session: SSTSession, input: TInput): Promise<TOutput>;
+  abstract execute(client: IpcClient, input: TInput): Promise<TOutput>;
 }

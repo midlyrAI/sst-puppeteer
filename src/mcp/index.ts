@@ -17,9 +17,5 @@ export {
   defaultRegistry,
 } from './tools/index.js';
 export { Transport, StdioTransport } from './transport.js';
-export {
-  McpServer,
-  createMcpServer,
-  type McpServerOptions,
-  type SessionFactory,
-} from './server.js';
+export { McpServer, createMcpServer, type McpServerOptions } from './server.js';
+export { SessionManager } from '../session/index.js';

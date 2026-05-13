@@ -1,4 +1,4 @@
-import { type SSTSession } from '../../core/index.js';
+import { type IpcClient } from '../../session/index.js';
 import { Tool } from './tool.js';
 import {
   WaitForReadyInputSchema,
@@ -11,8 +11,9 @@ export class WaitForReadyTool extends Tool<WaitForReadyInput, WaitForReadyOutput
   readonly description = 'Block until the initial deploy of the session reaches the ready state.';
   readonly inputSchema = WaitForReadyInputSchema;
 
-  async execute(session: SSTSession, input: WaitForReadyInput): Promise<WaitForReadyOutput> {
-    const result = await session.waitForReady({ timeoutMs: input.timeoutMs });
-    return { state: result.state, durationMs: result.durationMs };
+  async execute(client: IpcClient, input: WaitForReadyInput): Promise<WaitForReadyOutput> {
+    const params: Record<string, unknown> = {};
+    if (input.timeoutMs !== undefined) params['timeoutMs'] = input.timeoutMs;
+    return (await client.call('wait_for_ready', params)) as WaitForReadyOutput;
   }
 }

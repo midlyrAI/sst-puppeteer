@@ -7,16 +7,11 @@
  * `console.log` will corrupt the JSON-RPC stream and the host will drop
  * the connection.
  */
-import { SessionBuilder } from '../src/core/index.js';
 import { createMcpServer, StdioTransport } from '../src/mcp/index.js';
-import { type SessionFactory } from '../src/mcp/server.js';
-
-const sessionFactory: SessionFactory = async (opts) => new SessionBuilder(opts).build();
 
 const main = async (): Promise<void> => {
   const server = createMcpServer({
     transport: new StdioTransport(),
-    sessionFactory,
   });
 
   const shutdown = async (signal: string): Promise<void> => {
