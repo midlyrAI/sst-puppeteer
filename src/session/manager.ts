@@ -1,14 +1,22 @@
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { IpcClient } from './ipc-client.js';
+import { acquireLock, dedupKey, SessionBusyError } from './locks.js';
 import {
   cleanupStaleSession,
   probeLiveness,
   tryReadMeta,
   validatePidOwnership,
+  writeMeta,
   type SessionMeta,
 } from './meta.js';
-import { allSessionDirs } from './paths.js';
-import type { SpawnDaemonOpts, SpawnDaemonResult } from './spawn.js';
+import { allSessionDirs, sessionDir as sessionDirFn, socketPath as socketPathFn } from './paths.js';
+import {
+  spawnDaemon as defaultSpawnDaemon,
+  type SpawnDaemonOpts,
+  type SpawnDaemonResult,
+} from './spawn.js';
 
 export type SpawnDaemonFn = (opts: SpawnDaemonOpts) => Promise<SpawnDaemonResult>;
 export type IpcClientFactory = (socketPath: string) => Promise<IpcClient>;
@@ -67,6 +75,39 @@ export class SessionStartingError extends Error {
   }
 }
 
+export class SessionStartFailedError extends Error {
+  override readonly name = 'SessionStartFailedError';
+  constructor(
+    message: string,
+    readonly sessionId: string,
+    readonly failureReason: string,
+  ) {
+    super(message);
+  }
+}
+
+export interface StartOrAttachOpts {
+  readonly projectDir: string;
+  readonly stage?: string;
+  readonly awsProfile?: string;
+  readonly awsRegion?: string;
+  readonly wait?: boolean;
+  readonly readyTimeoutMs?: number;
+}
+
+export type StartOrAttachResult =
+  | { status: 'ready'; sessionId: string; reused: boolean }
+  | { status: 'started'; sessionId: string; reused: false }
+  | { status: 'failed'; sessionId: string; reused: false; error: string };
+
+export type SessionState = 'starting' | 'ready' | 'unhealthy' | 'stopped' | 'failed';
+
+export interface SessionRecord extends SessionMeta {
+  readonly state: SessionState;
+  readonly liveness: { pidAlive: boolean; socketAlive: boolean };
+  readonly startedAt: number;
+}
+
 export interface SessionManagerOpts {
   readonly spawnDaemon?: SpawnDaemonFn;
   readonly ipcClientFactory?: IpcClientFactory;
@@ -88,13 +129,255 @@ const livenessLookup = async (
 };
 
 /**
- * High-level session lifecycle manager. Folds the v1 `SessionResolver` class
- * into `resolve()`. For Chunk A, `startOrAttach`, `list`, `stop`, and
- * `connect` are not yet implemented — they land in Chunks B/C.
+ * Walk up from projectDir collecting every existing `node_modules/.bin`
+ * directory until the filesystem root. Mirrors npm/pnpm shell-script behavior
+ * so locally-installed binaries like `sst` resolve inside the daemon's PTY.
+ */
+export const collectNodeModulesBins = (projectDir: string): string[] => {
+  const bins: string[] = [];
+  let dir = path.resolve(projectDir);
+  while (true) {
+    const candidate = path.join(dir, 'node_modules', '.bin');
+    try {
+      if (fs.statSync(candidate).isDirectory()) bins.push(candidate);
+    } catch {
+      // not present at this level
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return bins;
+};
+
+const augmentPath = (projectDir: string, basePath: string | undefined): string => {
+  const bins = collectNodeModulesBins(projectDir);
+  const parts = [...bins];
+  if (basePath !== undefined && basePath.length > 0) parts.push(basePath);
+  return parts.join(path.delimiter);
+};
+
+const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+const synthesizeState = (
+  meta: SessionMeta,
+  liveness: { pidAlive: boolean; socketAlive: boolean },
+): SessionState => {
+  if (meta.status === 'starting') return 'starting';
+  if (meta.status === 'stopped') return 'stopped';
+  if (meta.status === 'failed') return 'failed';
+  // status === 'running'
+  if (liveness.pidAlive && liveness.socketAlive) return 'ready';
+  return 'unhealthy';
+};
+
+/**
+ * High-level session lifecycle manager. Per spec A15: holds no long-lived
+ * state. Every method does fs I/O fresh; `connect` returns a fresh
+ * `IpcClient` the caller must close.
  */
 export class SessionManager {
-  constructor(_opts: SessionManagerOpts = {}) {
-    // Per A15: holds no long-lived state. Opts are wired through in Chunk B.
+  private readonly _spawnDaemon: SpawnDaemonFn;
+  private readonly _clock: () => number;
+
+  constructor(opts: SessionManagerOpts = {}) {
+    this._spawnDaemon = opts.spawnDaemon ?? defaultSpawnDaemon;
+    this._clock = opts.clock ?? (() => Date.now());
+  }
+
+  async startOrAttach(opts: StartOrAttachOpts): Promise<StartOrAttachResult> {
+    const projectDir = path.resolve(opts.projectDir);
+    const stage = opts.stage ?? 'default';
+    const wait = opts.wait ?? true;
+    const readyTimeoutMs = opts.readyTimeoutMs ?? 300_000;
+    const awsProfile = opts.awsProfile;
+    const awsRegion = opts.awsRegion;
+
+    const key = dedupKey(projectDir, stage);
+
+    // Predicate for stale-lock reclaim: is there a live session for this key?
+    const isLiveForKey = async (): Promise<boolean> => {
+      for (const id of allSessionDirs()) {
+        const meta = tryReadMeta(id);
+        if (meta === null) continue;
+        if (path.resolve(meta.projectDir) !== projectDir) continue;
+        if ((meta.stage ?? 'default') !== stage) continue;
+        if (meta.status === 'running') {
+          const liveness = await probeLiveness(meta);
+          if (liveness.pidAlive && liveness.socketAlive) return true;
+        }
+      }
+      return false;
+    };
+
+    const { release } = await acquireLock(key, { isLiveForKey });
+
+    let sessionId: string | null = null;
+    let releasedInline = false;
+    try {
+      // Inside the lock: scan for a live match. If found, reuse it.
+      for (const id of allSessionDirs()) {
+        const meta = tryReadMeta(id);
+        if (meta === null) continue;
+        if (path.resolve(meta.projectDir) !== projectDir) continue;
+        if ((meta.stage ?? 'default') !== stage) continue;
+
+        if (meta.status === 'running') {
+          const liveness = await probeLiveness(meta);
+          if (liveness.pidAlive && liveness.socketAlive) {
+            release();
+            releasedInline = true;
+            return { status: 'ready', sessionId: id, reused: true };
+          }
+          // running but dead — clean up and continue scanning/spawning.
+          cleanupStaleSession(id);
+          continue;
+        }
+
+        if (meta.status === 'starting') {
+          // Could be a sibling waiter currently spawning, OR an orphaned
+          // starting meta. If socket is alive treat as reusable (after
+          // optional wait_for_ready). Otherwise, clean up.
+          const liveness = await probeLiveness(meta);
+          if (liveness.socketAlive) {
+            release();
+            releasedInline = true;
+            if (wait) {
+              const client = await IpcClient.connect(meta.socketPath, 5000);
+              try {
+                await client.call('wait_for_ready', { timeoutMs: readyTimeoutMs });
+              } finally {
+                client.close();
+              }
+            }
+            return { status: 'ready', sessionId: id, reused: true };
+          }
+          cleanupStaleSession(id);
+          continue;
+        }
+
+        if (meta.status === 'stopped' || meta.status === 'failed') {
+          cleanupStaleSession(id);
+          continue;
+        }
+      }
+
+      // No live match — mint a new session.
+      sessionId = crypto.randomUUID();
+      const sDir = sessionDirFn(sessionId);
+      const sockPath = socketPathFn(sessionId);
+
+      fs.mkdirSync(sDir, { recursive: true });
+      const createdAt = this._clock();
+      const firstMeta: SessionMeta = {
+        sessionId,
+        projectDir,
+        stage,
+        pid: null,
+        pgid: null,
+        startTimeMs: null,
+        socketPath: sockPath,
+        createdAt,
+        status: 'starting',
+        ...(awsProfile !== undefined ? { awsProfile } : {}),
+        ...(awsRegion !== undefined ? { awsRegion } : {}),
+      };
+      writeMeta(sessionId, firstMeta);
+
+      // Spawn the daemon. Failure here is propagated as an error after meta
+      // is marked failed.
+      const env: NodeJS.ProcessEnv = {};
+      env['PATH'] = augmentPath(projectDir, process.env['PATH']);
+      if (awsProfile !== undefined) env['AWS_PROFILE'] = awsProfile;
+      if (awsRegion !== undefined) env['AWS_REGION'] = awsRegion;
+
+      let pid: number;
+      let startTimeMs: number;
+      try {
+        const result = await this._spawnDaemon({
+          sessionId,
+          sessionDir: sDir,
+          env,
+        });
+        pid = result.pid;
+        startTimeMs = result.startTimeMs;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        try {
+          writeMeta(sessionId, {
+            ...firstMeta,
+            status: 'failed',
+            failureReason: msg,
+            lastUpdatedAt: this._clock(),
+          });
+        } catch {
+          // ignore meta write failure
+        }
+        const e = new SessionStartFailedError(
+          `daemon spawn failed: ${msg}`,
+          sessionId,
+          msg,
+        );
+        throw e;
+      }
+
+      let pgid: number | null = null;
+      try {
+        const fn = (process as { getpgid?: (p: number) => number }).getpgid;
+        pgid = typeof fn === 'function' ? fn(pid) : pid;
+      } catch {
+        pgid = pid;
+      }
+
+      writeMeta(sessionId, {
+        ...firstMeta,
+        pid,
+        pgid,
+        startTimeMs,
+        status: 'running',
+        lastUpdatedAt: this._clock(),
+      });
+
+      // Release the lock as soon as meta is finalized. The wait_for_ready
+      // call can take many minutes; we don't want to hold the lock that long.
+      release();
+      releasedInline = true;
+
+      if (wait) {
+        const client = await IpcClient.connect(sockPath, 5000);
+        try {
+          await client.call('wait_for_ready', { timeoutMs: readyTimeoutMs });
+        } finally {
+          client.close();
+        }
+        return { status: 'ready', sessionId, reused: false };
+      }
+      return { status: 'started', sessionId, reused: false };
+    } finally {
+      if (!releasedInline) {
+        try {
+          release();
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
+
+  async list(): Promise<SessionRecord[]> {
+    const records: SessionRecord[] = [];
+    for (const id of allSessionDirs()) {
+      const meta = tryReadMeta(id);
+      if (meta === null) continue;
+      let liveness = { pidAlive: false, socketAlive: false };
+      if (meta.status === 'running') {
+        liveness = await probeLiveness(meta);
+      }
+      const state = synthesizeState(meta, liveness);
+      const startedAt = meta.startTimeMs ?? meta.createdAt;
+      records.push({ ...meta, state, liveness, startedAt });
+    }
+    return records;
   }
 
   async resolve(args: ResolveArgs): Promise<ResolvedSession> {
@@ -200,21 +483,77 @@ export class SessionManager {
     });
   }
 
-  // ─── stubs (implemented in Chunks B/C) ──────────────────────────────────────
+  async stop(sessionId: string): Promise<{ stopped: true }> {
+    const meta = tryReadMeta(sessionId);
+    if (meta === null) {
+      // Already gone.
+      cleanupStaleSession(sessionId);
+      return { stopped: true };
+    }
 
-  async startOrAttach(_opts: unknown): Promise<never> {
-    throw new Error('SessionManager.startOrAttach is implemented in Chunk B');
+    let client: IpcClient | null = null;
+    try {
+      client = await IpcClient.connect(meta.socketPath, 2000);
+    } catch {
+      // Connect failed — fall back to liveness probe.
+      const { pidAlive, socketAlive } = await probeLiveness(meta);
+      if (pidAlive && !socketAlive) {
+        cleanupStaleSession(sessionId);
+        throw new SessionUnhealthyError(
+          'daemon pid alive but socket dead during stop',
+          'socket-dead',
+          { sessionId },
+        );
+      }
+      cleanupStaleSession(sessionId);
+      return { stopped: true };
+    }
+
+    try {
+      try {
+        await client.call('stop_session', {});
+      } catch {
+        // Daemon may close socket abruptly after responding; ignore.
+      }
+    } finally {
+      client.close();
+    }
+
+    // Best-effort: wait briefly for pid to exit before cleanup.
+    if (meta.pid !== null) {
+      const start = this._clock();
+      while (this._clock() - start < 5000) {
+        try {
+          process.kill(meta.pid, 0);
+        } catch {
+          break;
+        }
+        await sleep(50);
+      }
+    }
+
+    cleanupStaleSession(sessionId);
+    return { stopped: true };
   }
 
-  async list(): Promise<never> {
-    throw new Error('SessionManager.list is implemented in Chunk B');
-  }
-
-  async stop(_sessionId: string): Promise<never> {
-    throw new Error('SessionManager.stop is implemented in Chunk B/C');
-  }
-
-  async connect(_sessionId: string): Promise<never> {
-    throw new Error('SessionManager.connect is implemented in Chunk C');
+  async connect(sessionId: string): Promise<IpcClient> {
+    const meta = tryReadMeta(sessionId);
+    if (meta === null) {
+      throw new SessionNotFoundError('No session with that id', { sessionId });
+    }
+    if (meta.status === 'starting' || meta.pid === null) {
+      throw new SessionStartingError('session is starting, retry shortly', sessionId);
+    }
+    if (meta.status === 'failed') {
+      throw new SessionStartFailedError(
+        `session start failed: ${meta.failureReason ?? 'unknown'}`,
+        sessionId,
+        meta.failureReason ?? 'unknown',
+      );
+    }
+    return IpcClient.connect(meta.socketPath, 2000);
   }
 }
+
+// Re-export for callers that previously imported SessionBusyError from this module.
+export { SessionBusyError };

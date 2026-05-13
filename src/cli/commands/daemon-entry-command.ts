@@ -90,9 +90,20 @@ export class DaemonEntryCommand extends Command {
     process.on('SIGINT', () => void finish(0));
 
     // Drive session.start() in the background so the daemon's "ready" can fire
-    // before SST's deploy completes. On failure, exit so callers see pid-dead.
+    // before SST's deploy completes. On failure, persist status:'failed' to
+    // meta so callers (list_sessions, the next startOrAttach) can see it.
     void session.start().catch((err: unknown) => {
       const e = err instanceof Error ? err : new Error(String(err));
+      try {
+        writeMeta(sessionId, {
+          ...readMeta(sessionId),
+          status: 'failed',
+          failureReason: e.message,
+          lastUpdatedAt: Date.now(),
+        });
+      } catch {
+        // meta write failed; nothing to do
+      }
       ctx.stderr.write(
         JSON.stringify({
           error: 'session.start() failed',
@@ -100,7 +111,22 @@ export class DaemonEntryCommand extends Command {
           stack: e.stack,
         }) + '\n',
       );
-      void finish(1);
+      // Skip the SIGTERM/finish(0) status:'stopped' overwrite — keep failed.
+      void (async (): Promise<void> => {
+        if (exiting) return;
+        exiting = true;
+        try {
+          await server.stop();
+        } catch {
+          // ignore
+        }
+        try {
+          await session.stop();
+        } catch {
+          // ignore
+        }
+        process.exit(1);
+      })();
     });
     process.on('disconnect', () => {
       // no-op: parent detached intentionally
