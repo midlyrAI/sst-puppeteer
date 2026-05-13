@@ -42,6 +42,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "e2e": "vitest run --config vitest.config.e2e.ts",
     "cli": "node dist/bin/cli.js",
     "cli:dev": "tsx bin/cli.ts",
     "mcp": "node dist/bin/mcp.js",

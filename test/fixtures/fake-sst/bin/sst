@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Shim that runs the fake-sst TypeScript implementation through the repo's
+# tsx loader. Invoked by the daemon's PATH walk (collectNodeModulesBins) as
+# `sst dev --stage <stage>`. See `bin/sst.ts` for the contract.
+#
+# Resolve through symlinks so `$0` from `node_modules/.bin/sst` lands on
+# the real `bin/sst` directory — otherwise tsx looks for sst.ts next to
+# the symlink (in node_modules/.bin/) and fails ERR_MODULE_NOT_FOUND.
+set -euo pipefail
+SOURCE="$0"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  case "$SOURCE" in
+    /*) ;;
+    *) SOURCE="$DIR/$SOURCE" ;;
+  esac
+done
+HERE="$(cd "$(dirname "$SOURCE")" && pwd)"
+exec node --import tsx --no-warnings "${HERE}/sst.ts" "$@"
