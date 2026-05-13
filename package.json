@@ -23,7 +23,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "e2e": "vitest run --config e2e/vitest.config.ts"
+    "e2e": "vitest run --config e2e/vitest.config.ts",
+    "cli:dev": "tsx cli/bin/sst-puppeteer.ts",
+    "mcp:dev": "tsx mcp/bin/sst-puppeteer-mcp.ts"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
