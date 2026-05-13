@@ -133,21 +133,27 @@ for (const p of PANES) {
 // HTTP server — /stream (SSE-ish concatenated JSON) and /rpc (200 OK).
 // ---------------------------------------------------------------------------
 const streamClients = new Set<http.ServerResponse>();
-// Last CompleteEvent payload (if any). Real SST's `/stream` replays the
-// most recent CompleteEvent on connect (see sst-session.ts:670). The
-// daemon relies on this to learn the deploy succeeded even if it connects
-// after the deploy finished.
+// Real SST's `/stream` replays the most recent StackCommandEvent and
+// CompleteEvent on connect (see sst-session.ts:670). The daemon relies on
+// this to learn the deploy state regardless of when it connects.
+let lastStackCommandEvent: unknown = null;
 let lastCompleteEvent: unknown = null;
 
-function broadcast(event: unknown): void {
-  const payload = JSON.stringify(event) + '\n';
-  for (const res of streamClients) {
-    try {
-      res.write(payload);
-    } catch {
-      /* ignore broken pipes */
-    }
+function writeTo(res: http.ServerResponse, event: unknown): boolean {
+  try {
+    return res.write(JSON.stringify(event) + '\n');
+  } catch {
+    return false;
   }
+}
+
+function broadcast(event: unknown): void {
+  for (const res of streamClients) writeTo(res, event);
+}
+
+function emitStackCommandEvent(payload: unknown): void {
+  lastStackCommandEvent = payload;
+  broadcast(payload);
 }
 
 function emitCompleteEvent(payload: unknown): void {
@@ -160,19 +166,12 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Type': 'application/x-ndjson',
       'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
     });
     streamClients.add(res);
-    // Replay the last CompleteEvent so late-connecting consumers can
-    // immediately transition BUSY → READY without waiting for the next
-    // 20 s redeploy cycle.
-    if (lastCompleteEvent !== null) {
-      try {
-        res.write(JSON.stringify(lastCompleteEvent) + '\n');
-      } catch {
-        /* ignore */
-      }
-    }
+    // Replay the latest events so a late-connecting consumer doesn't have
+    // to wait for the next 20s redeploy cycle.
+    if (lastStackCommandEvent !== null) writeTo(res, lastStackCommandEvent);
+    if (lastCompleteEvent !== null) writeTo(res, lastCompleteEvent);
     req.on('close', () => streamClients.delete(res));
     return;
   }
@@ -199,8 +198,10 @@ server.listen(0, '127.0.0.1', () => {
   fs.writeFileSync(serverFile, url + '\n');
 
   // ---- Deploy timeline ---------------------------------------------------
-  // t=0 baseline: emit StackCommandEvent + DeployRequestedEvent.
-  broadcast({
+  // t=0 baseline: emit StackCommandEvent + DeployRequestedEvent. These are
+  // also remembered as last-events so a late-connecting client gets them
+  // immediately on connect.
+  emitStackCommandEvent({
     type: 'project.StackCommandEvent',
     event: {
       App: 'fake-sst-fixture',
@@ -236,9 +237,22 @@ server.listen(0, '127.0.0.1', () => {
     });
   }, 300);
 
-  // 20s redeploy cycle — drives `wait_for_next_ready`.
+  // 20s redeploy cycle — drives `wait_for_next_ready`. Each cycle must emit
+  // StackCommandEvent (Command=deploy) to flip the session state machine
+  // READY → BUSY, then CompleteEvent to flip BUSY → READY. See
+  // `sst-session.ts:658-678`.
   let updateSeq = 2;
   const redeployTimer = setInterval(() => {
+    emitStackCommandEvent({
+      type: 'project.StackCommandEvent',
+      event: {
+        App: 'fake-sst-fixture',
+        Stage: stage,
+        Config: 'sst.config.ts',
+        Command: 'deploy',
+        Version: '3.0.0-fake',
+      },
+    });
     broadcast({ type: 'deployer.DeployRequestedEvent', event: {} });
     setTimeout(() => {
       // Heartbeat append so PaneLogWatcher sees ongoing activity on live
@@ -275,15 +289,18 @@ server.listen(0, '127.0.0.1', () => {
 // stdin MUST be in raw mode + resumed; otherwise data arrives line-buffered
 // or not at all (B5 in the plan).
 // ---------------------------------------------------------------------------
+// Stdin in raw mode is mandatory — node-pty's slave delivers bytes
+// without it, but they're line-buffered. Even when isTTY is false (e.g.
+// piped under shells that don't allocate a PTY), we still resume the
+// stream so .on('data') fires.
 if (process.stdin.isTTY) {
   try {
     process.stdin.setRawMode(true);
   } catch {
-    /* not a TTY in test environments without a PTY; harmless */
+    /* harmless */
   }
 }
 process.stdin.resume();
-
 let cursor = 0;
 let pendingEscape = ''; // For multi-byte arrow sequences (\x1b[A/B/C/D).
 
@@ -329,14 +346,32 @@ function handleKey(key: string): void {
     // from a real SST POV (Enter on a running pane is the toggle pane —
     // but our daemon's startCommand pre-checks status before issuing).
     if (!sel.alive) {
-      const file = logFile(sel.name);
-      // Ensure file exists for first-run case (Task-seed starts absent).
-      if (!fs.existsSync(file)) {
-        fs.writeFileSync(file, '');
-      }
-      appendLine(sel.name, '--- restarted ---');
-      appendLine(sel.name, `starting ${sel.name}`);
+      // appendFileSync creates the file if it doesn't exist (first-run case
+      // for Task-seed). The subsequent utimesSync inside appendLine forces
+      // mtime above the watcher's baseline so absent→started fires on the
+      // next pane-log-watcher tick.
+      //
+      // CRITICAL: defer the write past PaneNavigator's settleMs (~100ms).
+      // SSTSession.startCommand does:
+      //   await sendKey(Enter)          // 100ms settleMs sleep
+      //   applyStatus(STARTING)         // optimistic
+      //   await waitForAnyStatus([RUNNING, STOPPED, ERRORED], 60s)
+      // If we write the log file before applyStatus(STARTING) runs,
+      // pane-log-watcher may fire RUNNING (status: idle → running) BEFORE
+      // the optimistic STARTING write, and then STARTING overwrites
+      // RUNNING. The waiter (registered after that) then never sees a
+      // transition into a target status and hangs for the full 60s.
+      // 200ms > 100ms settleMs is enough headroom.
+      const name = sel.name;
       sel.alive = true;
+      setTimeout(() => {
+        try {
+          appendLine(name, '--- restarted ---');
+          appendLine(name, `starting ${name}`);
+        } catch {
+          /* ignore */
+        }
+      }, 200).unref();
     }
     return;
   }
