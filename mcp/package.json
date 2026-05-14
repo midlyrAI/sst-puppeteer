@@ -1,6 +1,6 @@
 {
   "name": "@midlyr/sst-puppeteer-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "MCP server for driving sst dev — gives AI agents the full interactive-TUI feature set (per-pane restart, stream events, log tail, redeploy waits) plus a passthrough for one-shot SST subcommands.",
   "license": "MIT",
