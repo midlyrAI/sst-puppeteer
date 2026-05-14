@@ -78,7 +78,6 @@ describe('SSTSession — disconnected state', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,

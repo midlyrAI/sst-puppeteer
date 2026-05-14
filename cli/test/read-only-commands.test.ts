@@ -117,7 +117,7 @@ describe('read-only-commands', () => {
   it('list-commands > returns commands array from daemon', async () => {
     vi.spyOn(session, 'listCommands').mockReturnValue([
       {
-        spec: { name: 'app', kind: 'service', command: 'echo', autostart: true, killable: true },
+        spec: { name: 'app', command: 'echo', autostart: true, killable: true },
         status: CommandStatus.STOPPED,
       },
     ] as never);

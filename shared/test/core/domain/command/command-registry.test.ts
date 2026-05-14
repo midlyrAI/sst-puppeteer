@@ -6,7 +6,6 @@ import { type CommandSpec } from '../../../../src/core/common/contract/command.j
 function makeSpec(name: string, overrides?: Partial<CommandSpec>): CommandSpec {
   return {
     name,
-    kind: 'service',
     command: `start-${name}`,
     autostart: true,
     killable: true,

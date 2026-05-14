@@ -64,13 +64,11 @@ export default $config({
     expect(alpha?.command).toBe('node alpha.js');
     expect(alpha?.directory).toBe('packages/alpha');
     expect(alpha?.autostart).toBe(true);
-    expect(alpha?.kind).toBe('service');
     expect(alpha?.killable).toBe(true);
 
     const beta = result[1];
     expect(beta?.name).toBe('Service-Beta');
     expect(beta?.command).toBe('node beta.js');
-    expect(beta?.kind).toBe('service');
     expect(beta?.killable).toBe(true);
   });
 
@@ -223,29 +221,5 @@ new sst.x.DevCommand("Service-Bad", { dev: { command:
     const result = parseSstConfig(path, { logger });
     expect(result).toEqual([]);
     expect(logger.warnCalls.length).toBeGreaterThanOrEqual(1);
-  });
-
-  // ---------------------------------------------------------------------------
-  // Test 9: kind heuristic
-  // ---------------------------------------------------------------------------
-
-  it('Test 9: kind heuristic — Task-*, DB-*, Tunnel-*, others', () => {
-    const src = `
-new sst.x.DevCommand("Task-Worker", { dev: { command: "node task.js" } });
-new sst.x.DevCommand("DB-Postgres", { dev: { command: "node db.js" } });
-new sst.x.DevCommand("Tunnel-SSH", { dev: { command: "node tunnel.js" } });
-new sst.x.DevCommand("Service-Api", { dev: { command: "node api.js" } });
-new sst.x.DevCommand("Frontend-Web", { dev: { command: "node web.js" } });
-`;
-    const path = writeTempConfig(src);
-    const result = parseSstConfig(path);
-
-    expect(result).toHaveLength(5);
-    const byName = Object.fromEntries(result.map((s) => [s.name, s.kind]));
-    expect(byName['Task-Worker']).toBe('task');
-    expect(byName['DB-Postgres']).toBe('tunnel');
-    expect(byName['Tunnel-SSH']).toBe('tunnel');
-    expect(byName['Service-Api']).toBe('service');
-    expect(byName['Frontend-Web']).toBe('service');
   });
 });

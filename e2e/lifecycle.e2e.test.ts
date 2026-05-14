@@ -29,7 +29,7 @@ const fixtureBinDir = path.join(fixtureDir, 'node_modules', '.bin');
 const STAGE = 'e2e';
 
 interface ListCommandsOut {
-  commands: Array<{ spec: { name: string; kind: string }; status: string }>;
+  commands: Array<{ spec: { name: string }; status: string }>;
 }
 interface StartSessionOut {
   sessionId: string;
@@ -137,7 +137,7 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     sessionId = out.sessionId;
   });
 
-  it('AC-E4 list-commands: 5 panes, kinds + initial statuses', async () => {
+  it('AC-E4 list-commands: 5 panes + initial statuses', async () => {
     const res = await cli(['list-commands', '--session', sessionId], stateRoot);
     expectOk(res, 'list-commands');
     const out = parseJsonStdout<ListCommandsOut>(res);
@@ -145,11 +145,6 @@ describe.sequential('e2e lifecycle — CLI half', () => {
     expect([...byName.keys()].sort()).toEqual(
       ['Task-migrate', 'Task-seed', 'backend', 'fe', 'worker'].sort(),
     );
-    expect(byName.get('backend')!.spec.kind).toBe('service');
-    expect(byName.get('fe')!.spec.kind).toBe('service');
-    expect(byName.get('worker')!.spec.kind).toBe('service');
-    expect(byName.get('Task-migrate')!.spec.kind).toBe('task');
-    expect(byName.get('Task-seed')!.spec.kind).toBe('task');
     expect(byName.get('backend')!.status).toBe('running');
     expect(byName.get('fe')!.status).toBe('running');
     expect(byName.get('worker')!.status).toBe('running');
@@ -359,9 +354,9 @@ describe.sequential('e2e lifecycle — MCP half', () => {
     const payload = McpDistChild.parsePayload<ListCommandsOut>(res);
     expect(payload.commands.length).toBe(5);
     const byName = new Map(payload.commands.map((c) => [c.spec.name, c]));
-    expect(byName.get('Task-migrate')?.spec.kind).toBe('task');
-    expect(byName.get('Task-seed')?.spec.kind).toBe('task');
-    expect(byName.get('backend')?.spec.kind).toBe('service');
+    expect(byName.get('Task-migrate')).toBeDefined();
+    expect(byName.get('Task-seed')).toBeDefined();
+    expect(byName.get('backend')).toBeDefined();
   });
 
   it('AC-E2 get_command_status Task-seed → idle', async () => {

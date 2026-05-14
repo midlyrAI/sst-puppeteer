@@ -91,7 +91,7 @@ describe('ipc-roundtrip', () => {
     const session = buildStubSession();
     vi.spyOn(session, 'listCommands').mockReturnValue([
       {
-        spec: { name: 'a', kind: 'service', command: 'echo', autostart: false, killable: true },
+        spec: { name: 'a', command: 'echo', autostart: false, killable: true },
         status: CommandStatus.STOPPED,
       },
     ] as never);

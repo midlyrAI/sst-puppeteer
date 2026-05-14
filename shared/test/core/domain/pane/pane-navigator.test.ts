@@ -50,7 +50,6 @@ class MockPty implements Pty {
 function makeSpec(name: string, overrides?: Partial<CommandSpec>): CommandSpec {
   return {
     name,
-    kind: 'service',
     command: `start-${name}`,
     autostart: true,
     killable: true,
@@ -134,10 +133,10 @@ describe('PaneNavigator — _localSortOrder', () => {
     expect(names).toContain('Tunnel');
   });
 
-  it('Test 4b: kind alone does NOT add system panes (no heuristic)', () => {
+  it('Test 4b: name prefixes alone do NOT add system panes (no heuristic)', () => {
     const reg = new CommandRegistry();
-    reg.register(makeSpec('Task-X', { kind: 'task' }));
-    reg.register(makeSpec('Tunnel-Y', { kind: 'tunnel' }));
+    reg.register(makeSpec('Task-X'));
+    reg.register(makeSpec('Tunnel-Y'));
     const { nav } = makeNavigator(reg);
     const names = asPrivate(nav)
       ._localSortOrder()

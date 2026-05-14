@@ -636,7 +636,6 @@ export class SSTSession {
         if (this._commandRegistry.has(name)) continue;
         this._commandRegistry.register({
           name,
-          kind: 'service',
           command: dev.command ?? '',
           directory: dev.directory,
           environment: dev.environment,
