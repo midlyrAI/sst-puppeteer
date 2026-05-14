@@ -1,6 +1,6 @@
 {
   "name": "@midlyr/sst-puppeteer-cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "CLI for driving sst dev — TUI-parity control (per-pane restart, deploy waits, log tail) over a long-running session, plus a passthrough for one-shot SST subcommands.",
   "license": "MIT",
