@@ -2,6 +2,13 @@
 
 An MCP server for driving `sst dev` — gives AI agents the full interactive-TUI feature set (per-pane restart, stream events, log tail, redeploy waits) plus a passthrough for one-shot SST subcommands.
 
+## Concepts
+
+- **Session** — one running `sst dev` process for a given `(projectDir, stage)`. Created by `start_session`, identified by a `sessionId`. The whole multiplexer, the event stream, the log directory — all scoped to one session.
+- **Command** — one pane _inside_ a session, declared under `dev.command` in `sst.config.ts` (e.g. `api`, `web`, `worker`, `ngrok`). Identified by name within a session.
+
+Sessions are stored on disk at `~/.sst-puppeteer/sessions/<sessionId>/` and survive MCP server restarts. Calling `start_session` for an already-running `(projectDir, stage)` is idempotent — it returns the existing `sessionId` with `reused: true`.
+
 ## Install & register
 
 Requires **Node.js ≥22**. Pick your host below; all snippets use `npx -y @midlyr/sst-puppeteer-mcp` so there's nothing to install ahead of time.
@@ -108,8 +115,6 @@ The agent gains 12 tools:
 - `list_commands`, `start_command`, `restart_command`, `stop_command`
 - `read_command_logs`, `wait_for_next_ready`, `get_command_status`
 - `run_sst` — passthrough for any other one-shot SST subcommand (deploy, remove, secrets, unlock…)
-
-Sessions are scoped to one `(projectDir, stage)` pair, identified by a `sessionId`, and stored at `~/.sst-puppeteer/sessions/<sessionId>/`. They survive MCP server restarts. Calling `start_session` for an already-running `(projectDir, stage)` is idempotent — it returns the existing `sessionId` with `reused: true`.
 
 ## Talk to it
 

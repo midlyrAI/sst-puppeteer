@@ -2,6 +2,13 @@
 
 A command-line for driving `sst dev` with TUI-parity control — per-pane restart, deploy waits, log tail — over a long-running session, plus a passthrough for any one-shot SST subcommand.
 
+## Concepts
+
+- **Session** — one running `sst dev` process for a given `(projectDir, stage)`. Created by `start`, identified by a `sessionId`. The whole multiplexer, the event stream, the log directory — all scoped to one session.
+- **Command** — one pane _inside_ a session, declared under `dev.command` in `sst.config.ts` (e.g. `api`, `web`, `worker`). Acted on by `start-command` / `stop-command` / `restart-command` / `read-command-logs`.
+
+Sessions are stored on disk at `~/.sst-puppeteer/sessions/<sessionId>/` and survive CLI invocations. Calling `start` for an already-running `(projectDir, stage)` is idempotent — it returns the existing `sessionId` with `reused: true`.
+
 ## Install
 
 ```sh
@@ -24,7 +31,7 @@ sst-puppeteer stop --session <id>                     # tear down the session
 sst-puppeteer run-sst --project /path/to/app -- deploy --stage prod
 ```
 
-Output is JSON by default (use `--pretty` for human-readable). Sessions resolve by `--session <id>` or by `(--project, --stage)`. Sessions are stored on disk at `~/.sst-puppeteer/sessions/<sessionId>/` and survive CLI invocations — calling `start` for an already-running `(projectDir, stage)` is idempotent and returns the existing `sessionId` with `reused: true`.
+Output is JSON by default (use `--pretty` for human-readable). Sessions resolve by `--session <id>` or by `(--project, --stage)`.
 
 ### Exit codes
 
