@@ -5,7 +5,6 @@ describe('CommandSpecSchema', () => {
   it('accepts null for environment (SST omits env vars as null, not undefined)', () => {
     const parsed = CommandSpecSchema.parse({
       name: 'api',
-      kind: 'service',
       command: 'bun run dev',
       directory: null,
       environment: null,
@@ -21,7 +20,6 @@ describe('CommandSpecSchema', () => {
   it('still accepts populated environment', () => {
     const parsed = CommandSpecSchema.parse({
       name: 'api',
-      kind: 'service',
       command: 'bun run dev',
       environment: { PORT: '3000' },
       autostart: true,
@@ -34,7 +32,6 @@ describe('CommandSpecSchema', () => {
     const parsed = CommandSchema.parse({
       spec: {
         name: 'web',
-        kind: 'service',
         command: 'bun run dev',
         directory: null,
         environment: null,

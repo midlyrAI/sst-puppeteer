@@ -233,7 +233,6 @@ describe('SSTSession — state machine via /stream events', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,
@@ -271,7 +270,6 @@ describe('SSTSession — startCommand keystroke sequencing', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,
@@ -313,7 +311,6 @@ describe('SSTSession — startCommand keystroke sequencing', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,
@@ -340,7 +337,6 @@ describe('SSTSession — startCommand keystroke sequencing', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,
@@ -370,7 +366,6 @@ describe('SSTSession — readCommandLogs', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,
@@ -399,7 +394,6 @@ describe('SSTSession — readCommandLogs', () => {
       commands: [
         {
           name: 'Service-A',
-          kind: 'service',
           command: 'echo hello',
           autostart: false,
           killable: true,
@@ -413,7 +407,7 @@ describe('SSTSession — readCommandLogs', () => {
     const logs = await session.readCommandLogs({ commandName: 'Service-A' });
     expect(logs).toEqual(['line 1', 'line 2', 'line 3']);
 
-    const limited = await session.readCommandLogs({ commandName: 'Service-A', limit: 2 });
+    const limited = await session.readCommandLogs({ commandName: 'Service-A', tail: 2 });
     expect(limited).toEqual(['line 2', 'line 3']);
 
     await session.stop();
@@ -449,14 +443,12 @@ describe('SSTSession — commands override', () => {
       commands: [
         {
           name: 'Worker-A',
-          kind: 'service',
           command: 'node worker',
           autostart: false,
           killable: true,
         },
         {
           name: 'Worker-B',
-          kind: 'task',
           command: 'node task',
           autostart: false,
           killable: true,

@@ -26,7 +26,7 @@
 
 import { readFileSync } from 'node:fs';
 import { type Logger } from '../../common/logger/logger.js';
-import { type CommandSpec, type CommandKind } from '../../common/contract/command.js';
+import { type CommandSpec } from '../../common/contract/command.js';
 import { ConfigNotFoundError } from '../../common/error/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -129,11 +129,8 @@ function extractDevCommands(source: string, logger?: Logger): CommandSpec[] {
     const environment = parseEnvironmentBlock(optsBody, logger);
     const link = parseLinkArray(optsBody, logger);
 
-    const kind = deriveKind(name);
-
     specs.push({
       name,
-      kind,
       command,
       directory,
       environment: environment ?? undefined,
@@ -357,14 +354,4 @@ function parseLinkArray(optsBody: string, _logger?: Logger): readonly string[] |
   }
 
   return ids;
-}
-
-// ---------------------------------------------------------------------------
-// Kind heuristic
-// ---------------------------------------------------------------------------
-
-function deriveKind(name: string): CommandKind {
-  if (name.startsWith('Task-')) return 'task';
-  if (name.startsWith('DB-') || name.startsWith('Tunnel-')) return 'tunnel';
-  return 'service';
 }

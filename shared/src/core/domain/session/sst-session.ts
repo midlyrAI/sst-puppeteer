@@ -522,7 +522,7 @@ export class SSTSession {
   async readCommandLogs(opts: {
     commandName: string;
     since?: number;
-    limit?: number;
+    tail?: number;
   }): Promise<readonly string[]> {
     if (this._commandRegistry.get(opts.commandName) === undefined) {
       throw new CommandNotFoundError(`No command named '${opts.commandName}'`);
@@ -545,8 +545,8 @@ export class SSTSession {
       lines = lines.slice(0, -1);
     }
 
-    if (opts.limit !== undefined && lines.length > opts.limit) {
-      lines = lines.slice(lines.length - opts.limit);
+    if (opts.tail !== undefined && lines.length > opts.tail) {
+      lines = lines.slice(lines.length - opts.tail);
     }
 
     return lines as readonly string[];
@@ -636,7 +636,6 @@ export class SSTSession {
         if (this._commandRegistry.has(name)) continue;
         this._commandRegistry.register({
           name,
-          kind: 'service',
           command: dev.command ?? '',
           directory: dev.directory,
           environment: dev.environment,

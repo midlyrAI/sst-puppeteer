@@ -40,7 +40,7 @@ export const DaemonRestartCommandParamsSchema = z.object({
 export const DaemonReadCommandLogsParamsSchema = z.object({
   commandName: z.string(),
   since: z.number().optional(),
-  limit: z.number().optional(),
+  tail: z.number().optional(),
 });
 
 export const DaemonStopSessionParamsSchema = z.object({});

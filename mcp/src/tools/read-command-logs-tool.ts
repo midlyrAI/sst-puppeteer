@@ -14,7 +14,7 @@ export class ReadCommandLogsTool extends Tool<ReadCommandLogsInput, ReadCommandL
   async execute(client: IpcClient, input: ReadCommandLogsInput): Promise<ReadCommandLogsOutput> {
     const params: Record<string, unknown> = { commandName: input.commandName };
     if (input.since !== undefined) params['since'] = input.since;
-    if (input.limit !== undefined) params['limit'] = input.limit;
+    if (input.tail !== undefined) params['tail'] = input.tail;
     return (await client.call('read_command_logs', params)) as ReadCommandLogsOutput;
   }
 }

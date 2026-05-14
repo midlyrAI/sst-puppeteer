@@ -156,14 +156,19 @@ export class McpServer {
         throw new Error(`Unknown tool: ${name}`);
       }
 
-      const sessionId = input['sessionId'] as string | undefined;
+      const parsed = tool.inputSchema.safeParse(input);
+      if (!parsed.success) {
+        return this._validationError(name, parsed.error.message);
+      }
+
+      const sessionId = (parsed.data as { sessionId?: string }).sessionId;
       if (sessionId === undefined) {
         throw new Error(`Tool ${name} requires a sessionId`);
       }
 
       const client = await this._sessionManager.connect(sessionId);
       try {
-        const result = await tool.execute(client, input as never);
+        const result = await tool.execute(client, parsed.data as never);
         return {
           content: [{ type: 'text', text: JSON.stringify(result) }],
         };

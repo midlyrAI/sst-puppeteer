@@ -191,8 +191,8 @@ export class IpcServer extends EventEmitter {
       case 'read_command_logs': {
         const commandName = params['commandName'] as string;
         const since = params['since'] as number | undefined;
-        const limit = params['limit'] as number | undefined;
-        const lines = await session.readCommandLogs({ commandName, since, limit });
+        const tail = params['tail'] as number | undefined;
+        const lines = await session.readCommandLogs({ commandName, since, tail });
         return { lines };
       }
       case 'stop_session': {

@@ -62,7 +62,7 @@ export type ListSessionsInput = z.infer<typeof ListSessionsInputSchema>;
 
 export const WaitForReadyInputSchema = z.object({
   sessionId: z.string(),
-  timeoutMs: z.number().optional(),
+  timeoutMs: z.coerce.number().optional(),
 });
 export type WaitForReadyInput = z.infer<typeof WaitForReadyInputSchema>;
 
@@ -98,14 +98,14 @@ export type StopCommandInput = z.infer<typeof StopCommandInputSchema>;
 export const ReadCommandLogsInputSchema = z.object({
   sessionId: z.string(),
   commandName: z.string(),
-  since: z.number().optional(),
-  limit: z.number().optional(),
+  since: z.coerce.number().optional(),
+  tail: z.coerce.number().optional(),
 });
 export type ReadCommandLogsInput = z.infer<typeof ReadCommandLogsInputSchema>;
 
 export const WaitForNextReadyInputSchema = z.object({
   sessionId: z.string(),
-  timeoutMs: z.number().optional(),
+  timeoutMs: z.coerce.number().optional(),
   commandName: z.string().optional(),
 });
 export type WaitForNextReadyInput = z.infer<typeof WaitForNextReadyInputSchema>;
@@ -120,7 +120,7 @@ export const RunSstInputSchema = z.object({
   args: z.array(z.string()),
   stage: z.string().optional(),
   env: z.record(z.string(), z.string()).optional(),
-  timeoutMs: z.number().optional(),
+  timeoutMs: z.coerce.number().optional(),
   sstCommand: z.string().optional(),
 });
 export type RunSstInput = z.infer<typeof RunSstInputSchema>;

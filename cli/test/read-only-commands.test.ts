@@ -117,7 +117,7 @@ describe('read-only-commands', () => {
   it('list-commands > returns commands array from daemon', async () => {
     vi.spyOn(session, 'listCommands').mockReturnValue([
       {
-        spec: { name: 'app', kind: 'service', command: 'echo', autostart: true, killable: true },
+        spec: { name: 'app', command: 'echo', autostart: true, killable: true },
         status: CommandStatus.STOPPED,
       },
     ] as never);
@@ -153,7 +153,7 @@ describe('read-only-commands', () => {
     expect(parsed.status).toBe(CommandStatus.RUNNING);
   });
 
-  it('read-command-logs > returns lines[] (covers limit)', async () => {
+  it('read-command-logs > returns lines[] (covers tail)', async () => {
     vi.spyOn(session, 'readCommandLogs').mockResolvedValue(['line1', 'line2', 'line3'] as never);
 
     await startServer();
@@ -162,7 +162,7 @@ describe('read-only-commands', () => {
     const out = makeWritable();
     const err = makeWritable();
     const code = await cmd.execute(
-      ['--session', SESSION_ID, '--command-name', 'app', '--limit', '3'],
+      ['--session', SESSION_ID, '--command-name', 'app', '--tail', '3'],
       makeCtx(out.stream, err.stream),
     );
 
