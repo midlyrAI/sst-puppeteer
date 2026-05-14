@@ -99,7 +99,7 @@ export const ReadCommandLogsInputSchema = z.object({
   sessionId: z.string(),
   commandName: z.string(),
   since: z.number().optional(),
-  limit: z.number().optional(),
+  tail: z.number().optional(),
 });
 export type ReadCommandLogsInput = z.infer<typeof ReadCommandLogsInputSchema>;
 

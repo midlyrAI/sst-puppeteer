@@ -23,7 +23,7 @@ export class ReadCommandLogsCommand extends Command {
         project: z.string().optional(),
         stage: z.string().optional(),
         'command-name': z.string().describe('Name of the command to read logs for (required)'),
-        limit: z.number().optional().describe('Maximum number of log lines to return'),
+        tail: z.number().optional().describe('Maximum number of log lines to return (from end)'),
         since: z
           .number()
           .optional()
@@ -46,7 +46,7 @@ export class ReadCommandLogsCommand extends Command {
           project: { type: 'string' },
           stage: { type: 'string' },
           'command-name': { type: 'string' },
-          limit: { type: 'string' },
+          tail: { type: 'string' },
           since: { type: 'string' },
           pretty: { type: 'boolean', default: false },
           help: { type: 'boolean', default: false },
@@ -74,7 +74,7 @@ export class ReadCommandLogsCommand extends Command {
     }
     if (parsed.values['help'] === true) {
       ctx.stdout.write(
-        'Usage: sst-puppeteer read-command-logs --command-name <name> [--limit <n>] [--since <epoch-ms>] [--session ID | --project DIR --stage S]\n',
+        'Usage: sst-puppeteer read-command-logs --command-name <name> [--tail <n>] [--since <epoch-ms>] [--session ID | --project DIR --stage S]\n',
       );
       return EXIT_OK;
     }
@@ -86,8 +86,8 @@ export class ReadCommandLogsCommand extends Command {
     }
 
     const pretty = parsed.values['pretty'] === true;
-    const limitRaw = parsed.values['limit'];
-    const limit = limitRaw !== undefined ? parseInt(limitRaw as string, 10) : undefined;
+    const tailRaw = parsed.values['tail'];
+    const tail = tailRaw !== undefined ? parseInt(tailRaw as string, 10) : undefined;
     // Note: core ignores this today; plumbed through for forward-compat (see ADR follow-ups)
     const sinceRaw = parsed.values['since'];
     const since = sinceRaw !== undefined ? parseInt(sinceRaw as string, 10) : undefined;
@@ -125,7 +125,7 @@ export class ReadCommandLogsCommand extends Command {
     try {
       const raw = await client.call('read_command_logs', {
         commandName,
-        ...(limit !== undefined ? { limit } : {}),
+        ...(tail !== undefined ? { tail } : {}),
         ...(since !== undefined ? { since } : {}),
       });
       const result = CliReadCommandLogsOutputSchema.parse(raw);

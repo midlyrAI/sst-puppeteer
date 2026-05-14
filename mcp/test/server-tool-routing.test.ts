@@ -231,7 +231,7 @@ describe('McpServer tool routing (_handleToolCall) — AC-7 enumerated subtests'
   });
 
   // 8. read_command_logs
-  it('Subtest 8: read_command_logs forwards commandName + optional since/limit', async () => {
+  it('Subtest 8: read_command_logs forwards commandName + optional since/tail', async () => {
     const { manager, state } = buildFakeManager({
       responses: { read_command_logs: { lines: ['l1', 'l2'] } },
     });
@@ -239,11 +239,11 @@ describe('McpServer tool routing (_handleToolCall) — AC-7 enumerated subtests'
     const result = await server._handleToolCall('read_command_logs', {
       sessionId: 's1',
       commandName: 'api',
-      limit: 50,
+      tail: 50,
     });
     expect(result.isError).toBeUndefined();
     expect(state.clientCalls).toEqual([
-      { method: 'read_command_logs', params: { commandName: 'api', limit: 50 } },
+      { method: 'read_command_logs', params: { commandName: 'api', tail: 50 } },
     ]);
     expect(JSON.parse(result.content[0]!.text)).toEqual({ lines: ['l1', 'l2'] });
   });

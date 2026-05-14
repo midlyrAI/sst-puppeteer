@@ -407,7 +407,7 @@ describe('SSTSession — readCommandLogs', () => {
     const logs = await session.readCommandLogs({ commandName: 'Service-A' });
     expect(logs).toEqual(['line 1', 'line 2', 'line 3']);
 
-    const limited = await session.readCommandLogs({ commandName: 'Service-A', limit: 2 });
+    const limited = await session.readCommandLogs({ commandName: 'Service-A', tail: 2 });
     expect(limited).toEqual(['line 2', 'line 3']);
 
     await session.stop();
