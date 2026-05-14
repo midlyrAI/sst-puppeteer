@@ -132,6 +132,20 @@ describe('McpServer tool routing (_handleToolCall) — AC-7 enumerated subtests'
     expect(JSON.parse(result.content[0]!.text)).toEqual({ state: 'ready', durationMs: 100 });
   });
 
+  // 1b. wait_for_ready with stringified timeoutMs — schema coerces to number
+  it('Subtest 1b: wait_for_ready coerces stringified timeoutMs to number before dispatch', async () => {
+    const { manager, state } = buildFakeManager({
+      responses: { wait_for_ready: { state: 'ready', durationMs: 100 } },
+    });
+    const server = buildServer(manager);
+    const result = await server._handleToolCall('wait_for_ready', {
+      sessionId: 's1',
+      timeoutMs: '3000' as unknown as number,
+    });
+    expect(result.isError).toBeUndefined();
+    expect(state.clientCalls).toEqual([{ method: 'wait_for_ready', params: { timeoutMs: 3000 } }]);
+  });
+
   // 2. wait_for_next_ready
   it('Subtest 2: wait_for_next_ready forwards params (less sessionId) to wire method', async () => {
     const { manager, state } = buildFakeManager({
@@ -401,6 +415,7 @@ describe('McpServer additional coverage', () => {
     const result = await server._handleToolCall('list_commands', {});
     expect(result.isError).toBe(true);
     const parsed = JSON.parse(result.content[0]!.text) as { error: string };
-    expect(parsed.error).toContain('requires a sessionId');
+    // Schema validation rejects missing sessionId at the boundary
+    expect(parsed.error).toContain('sessionId');
   });
 });
