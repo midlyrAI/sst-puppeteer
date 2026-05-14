@@ -1,0 +1,45 @@
+{
+  "name": "@midlyr/sst-puppeteer-cli",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "CLI for driving sst dev — TUI-parity control (per-pane restart, deploy waits, log tail) over a long-running session, plus a passthrough for one-shot SST subcommands.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/midlyrAI/sst-puppeteer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/midlyrAI/sst-puppeteer/issues"
+  },
+  "homepage": "https://github.com/midlyrAI/sst-puppeteer#readme",
+  "keywords": [
+    "sst",
+    "cli",
+    "serverless",
+    "ai-agents"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "sst-puppeteer": "./dist/cli/bin/sst-puppeteer.js"
+  },
+  "files": [
+    "dist",
+    "scripts/fix-spawn-helper.mjs"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli/bin/*.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "node scripts/fix-spawn-helper.mjs",
+    "prepublishOnly": "pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0",
+    "zod": "^4.0.0"
+  }
+}

@@ -1,0 +1,64 @@
+import { SstPuppeteerError } from '../../shared/src/core/index.js';
+import { type CliContext } from './commands/command.js';
+import { type CommandRegistry } from './commands/registry.js';
+
+export interface CliRunnerOptions {
+  readonly registry: CommandRegistry;
+  readonly ctx: CliContext;
+}
+
+export class CliRunner {
+  constructor(private readonly _opts: CliRunnerOptions) {}
+
+  async run(argv: readonly string[]): Promise<number> {
+    const commandName = argv[2];
+    const { registry, ctx } = this._opts;
+
+    if (!commandName || commandName === '--help' || commandName === '-h') {
+      this._writeUsage(registry, ctx);
+      return commandName ? 0 : 2;
+    }
+
+    const command = registry.get(commandName);
+    if (!command) {
+      ctx.stderr.write(`Unknown command: ${commandName}\n\n`);
+      this._writeUsage(registry, ctx);
+      return 2;
+    }
+
+    try {
+      return await command.execute(argv.slice(3), ctx);
+    } catch (err) {
+      if (err instanceof SstPuppeteerError) {
+        ctx.stderr.write(`${err.name}: ${err.message}\n`);
+        return 1;
+      }
+      throw err;
+    }
+  }
+
+  private _writeUsage(registry: CommandRegistry, ctx: CliContext): void {
+    ctx.stderr.write(
+      'sst-puppeteer — drive `sst dev` (SST’s interactive TUI) from a stateless CLI.\n\n' +
+        'Manages a per-session daemon that hosts the `sst dev` PTY between commands,\n' +
+        'so you can restart individual panes, tail per-pane logs, and wait for\n' +
+        'redeploys — the full TUI surface — without sitting at a terminal.\n\n' +
+        'Usage: sst-puppeteer <command> [args]\n' +
+        'Run `sst-puppeteer <command> --help` for command-specific options.\n\n' +
+        'Commands:\n',
+    );
+    let maxNameLen = 0;
+    for (const cmd of registry.list()) {
+      if (cmd.hidden) continue;
+      if (cmd.name.length > maxNameLen) maxNameLen = cmd.name.length;
+    }
+    const pad = Math.max(maxNameLen + 2, 14);
+    for (const cmd of registry.list()) {
+      if (cmd.hidden) continue;
+      ctx.stderr.write(`  ${cmd.name.padEnd(pad)} ${cmd.description}\n`);
+    }
+  }
+}
+
+export const runCli = async (argv: readonly string[], opts: CliRunnerOptions): Promise<number> =>
+  new CliRunner(opts).run(argv);

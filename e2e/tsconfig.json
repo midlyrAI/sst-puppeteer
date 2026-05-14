@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "**/*.ts",
+    "../shared/src/**/*.ts",
+    "../cli/src/**/*.ts",
+    "../cli/bin/**/*.ts",
+    "../mcp/src/**/*.ts",
+    "../mcp/bin/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "fixtures"]
+}

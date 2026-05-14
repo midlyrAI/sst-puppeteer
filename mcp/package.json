@@ -1,0 +1,48 @@
+{
+  "name": "@midlyr/sst-puppeteer-mcp",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "MCP server for driving sst dev — gives AI agents the full interactive-TUI feature set (per-pane restart, stream events, log tail, redeploy waits) plus a passthrough for one-shot SST subcommands.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/midlyrAI/sst-puppeteer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/midlyrAI/sst-puppeteer/issues"
+  },
+  "homepage": "https://github.com/midlyrAI/sst-puppeteer#readme",
+  "keywords": [
+    "sst",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai-agents",
+    "serverless"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "sst-puppeteer-mcp": "./dist/mcp/bin/sst-puppeteer-mcp.js"
+  },
+  "files": [
+    "dist",
+    "scripts/fix-spawn-helper.mjs"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/mcp/bin/*.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "node scripts/fix-spawn-helper.mjs",
+    "prepublishOnly": "pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "node-pty": "^1.0.0",
+    "zod": "^4.0.0"
+  }
+}
